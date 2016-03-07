@@ -1,15 +1,15 @@
 EXEC_NAME=BebopDroneReceiveStream #output filename
 
-SDK_DIR=../../../ARSDKBuildUtils
+SDK_DIR=../../../../out
 IDIR=./
 CC=gcc
-CFLAGS=-I$(IDIR) -I $(SDK_DIR)/Targets/Unix/Install/include
+CFLAGS=-I$(IDIR) -I $(SDK_DIR)/Unix-base/staging/usr/include
 
 OBJDIR=obj
-LDIR = $(SDK_DIR)/Targets/Unix/Install/lib
+LDIR = $(SDK_DIR)/Unix-base/staging/usr/lib
 
-LIBS=-L$(SDK_DIR)/Targets/Unix/Install/lib -larsal -larcommands -larnetwork -larnetworkal -lardiscovery -larstream
-LIBS_DBG=-L$(SDK_DIR)/Targets/Unix/Install/lib -larsal_dbg -larcommands_dbg -larnetwork_dbg -larnetworkal_dbg -lardiscovery_dbg -larstream_dbg
+LIBS=-L$(SDK_DIR)/Unix-base/staging/usr/lib -larsal -larcommands -larnetwork -larnetworkal -lardiscovery -larstream
+LIBS_DBG=-L$(SDK_DIR)/Unix-base/staging/usr/lib -larsal_dbg -larcommands_dbg -larnetwork_dbg -larnetworkal_dbg -lardiscovery_dbg -larstream_dbg
 
 _DEPS = BebopDroneReceiveStream.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))

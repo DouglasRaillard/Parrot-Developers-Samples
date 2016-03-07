@@ -1,11 +1,11 @@
 EXEC_NAME=JumpingSumoPiloting #output filename
 
-SDK_DIR=../../../../out/Unix-base/
+SDK_DIR=../../../../out
 IDIR=./
-CFLAGS=-I$(IDIR) -I$(SDK_DIR)/staging/usr/include
+CFLAGS=-I$(IDIR) -I$(SDK_DIR)/Unix-base/staging/usr/include
 
 OBJDIR=obj
-LDIR = $(SDK_DIR)/final/usr/lib
+LDIR = $(SDK_DIR)/Unix-base/staging/usr/lib
 
 EXTERNAL_LIB=-lncurses
 

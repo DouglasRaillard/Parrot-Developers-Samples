@@ -1,17 +1,17 @@
 EXEC_NAME=BebopDroneDecodeStream #output filename
 
-SDK_DIR=../../../ARSDKBuildUtils
+SDK_DIR=../../../../out
 IDIR=./
 CC=gcc
-CFLAGS=-I$(IDIR) -I $(SDK_DIR)/Targets/Unix/Install/include -g
+CFLAGS=-I$(IDIR) -I $(SDK_DIR)/Unix-base/staging/usr/include -g
 
 OBJDIR=obj
-LDIR = $(SDK_DIR)/Targets/Unix/Install/lib
+LDIR = $(SDK_DIR)/Unix-base/staging/usr/lib
 
 EXTERNAL_LIB=-lncurses -lavcodec -lavformat -lswscale -lavutil
 
-LIBS=-L$(SDK_DIR)/Targets/Unix/Install/lib -larsal -larcommands -larnetwork -larnetworkal -lardiscovery -larstream $(EXTERNAL_LIB)
-LIBS_DBG=-L$(SDK_DIR)/Targets/Unix/Install/lib -larsal_dbg -larcommands_dbg -larnetwork_dbg -larnetworkal_dbg -lardiscovery_dbg -larstream_dbg $(EXTERNAL_LIB)
+LIBS=-L$(SDK_DIR)/Unix-base/staging/usr/lib -larsal -larcommands -larnetwork -larnetworkal -lardiscovery -larstream $(EXTERNAL_LIB)
+LIBS_DBG=-L$(SDK_DIR)/Unix-base/staging/usr/lib -larsal_dbg -larcommands_dbg -larnetwork_dbg -larnetworkal_dbg -lardiscovery_dbg -larstream_dbg $(EXTERNAL_LIB)
 
 _DEPS = BebopDroneDecodeStream.h DecoderManager.h ihm.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
