@@ -320,15 +320,16 @@ void *IHM_InputProcessing(void *data)
                     if (automationActive == true)
                     {
                         gettimeofday(&currentTime, NULL);
-                        if((currentTime.tv_usec - beginAutomationTime.tv_usec) < 2000)
+                        if(((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) < 2000)
                         {
                             ihm->onInputEventCallback (IHM_INPUT_EVENT_UP, ihm->customData);
                         }
-                        if((currentTime.tv_usec - beginAutomationTime.tv_usec) >= 2000 && (currentTime.tv_usec - beginAutomationTime.tv_usec) < 6000)
+                        if((((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) >= 2000)
+                            && (((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) < 6000))
                         {
                             ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
                         }
-                        if((currentTime.tv_usec - beginAutomationTime.tv_usec) >= 6000)
+                        if(((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) >= 6000)
                         {
                             ihm->onInputEventCallback (IHM_INPUT_EVENT_LAND, ihm->customData);
                             automationActive = false;
