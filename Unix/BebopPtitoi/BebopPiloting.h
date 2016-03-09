@@ -44,6 +44,7 @@ void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICT
 void batteryStateChanged (uint8_t percent);
 void attitudeStateChanged (float roll, float pitch, float yaw);
 void speedStateChanged (float roll, float pitch, float yaw);
+void positionStateChanged (double latitude, double longitude, double altitude);
 
 // called when a streaming frame has been received
 eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *customData);

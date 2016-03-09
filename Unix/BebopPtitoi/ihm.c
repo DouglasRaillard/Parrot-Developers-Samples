@@ -43,6 +43,7 @@
 #include <stdlib.h>
 #include <curses.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include <libARSAL/ARSAL.h>
 
@@ -76,6 +77,13 @@
 #define SPEEDY_Y 11
 #define SPEEDZ_X 0
 #define SPEEDZ_Y 12
+
+#define LATITUDE_X 0
+#define LATITUDE_Y 14
+#define LONGITUDE_X 0
+#define LONGITUDE_Y 15
+#define ALTITUDE_X 0
+#define ALTITUDE_Y 16
 
 /*****************************************
  *
@@ -188,16 +196,22 @@ void *IHM_InputProcessing(void *data)
     IHM_t *ihm = (IHM_t *) data;
     int key = 0;
     
+    struct timeval currentTime, beginAutomationTime;
+    bool automationActive = false;
+
     if (ihm != NULL)
     {
         while (ihm->run)
         {
+            time_t now = time(0);
+
             key = getch();
             
             if ((key == 27) || (key =='q'))
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
+                    automationActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_EXIT, ihm->customData);
                 }
             }
@@ -205,6 +219,7 @@ void *IHM_InputProcessing(void *data)
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
+                    automationActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_UP, ihm->customData);
                 }
             }
@@ -212,6 +227,7 @@ void *IHM_InputProcessing(void *data)
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
+                    automationActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_DOWN, ihm->customData);
                 }
             }
@@ -219,6 +235,7 @@ void *IHM_InputProcessing(void *data)
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
+                    automationActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
                 }
             }
@@ -226,6 +243,7 @@ void *IHM_InputProcessing(void *data)
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
+                    automationActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                 }
             }
@@ -233,6 +251,7 @@ void *IHM_InputProcessing(void *data)
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
+                    automationActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_EMERGENCY, ihm->customData);
                 }
             }
@@ -240,6 +259,7 @@ void *IHM_InputProcessing(void *data)
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
+                    automationActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_TAKEOFF, ihm->customData);
                 }
             }
@@ -247,6 +267,7 @@ void *IHM_InputProcessing(void *data)
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
+                    automationActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_LAND, ihm->customData);
                 }
             }
@@ -254,6 +275,7 @@ void *IHM_InputProcessing(void *data)
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
+                    automationActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
                 }
             }
@@ -261,6 +283,7 @@ void *IHM_InputProcessing(void *data)
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
+                    automationActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_BACK, ihm->customData);
                 }
             }
@@ -268,6 +291,7 @@ void *IHM_InputProcessing(void *data)
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
+                    automationActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_ROLL_LEFT, ihm->customData);
                 }
             }
@@ -275,14 +299,44 @@ void *IHM_InputProcessing(void *data)
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
+                    automationActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_ROLL_RIGHT, ihm->customData);
+                }
+            }
+            else if(key == 'o')
+            {
+                if(ihm->onInputEventCallback != NULL)
+                {
+                    gettimeofday(&beginAutomationTime, NULL);
+                    automationActive = true;
+                    ihm->onInputEventCallback (IHM_INPUT_EVENT_TAKEOFF, ihm->customData);
                 }
             }
             else
             {
                 if(ihm->onInputEventCallback != NULL)
                 {
-                    ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
+                    if (automationActive == true)
+                    {
+                        gettimeofday(&currentTime, NULL);
+                        if((currentTime.tv_usec - beginAutomationTime.tv_usec) < 500)
+                        {
+                            ihm->onInputEventCallback (IHM_INPUT_EVENT_UP, ihm->customData);
+                        }
+                        if((currentTime.tv_usec - beginAutomationTime.tv_usec) >= 500 && (currentTime.tv_usec - beginAutomationTime.tv_usec) < 1000)
+                        {
+                            ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
+                        }
+                        if((currentTime.tv_usec - beginAutomationTime.tv_usec) >= 1000)
+                        {
+                            ihm->onInputEventCallback (IHM_INPUT_EVENT_LAND, ihm->customData);
+                            automationActive = false;
+                        }
+                    }
+                    else
+                    {
+                        ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
+                    } 
                 }
             }
             
@@ -356,5 +410,23 @@ void IHM_PrintSpeed(IHM_t *ihm, float speedX, float speedY, float speedZ)
         move(SPEEDZ_Y, 0);     // move to begining of line
         clrtoeol();              // clear line
         mvprintw(SPEEDZ_Y, SPEEDZ_X, "Speed Z: %.5f", speedZ);
+    }
+}
+
+void IHM_PrintPosition(IHM_t *ihm, double latitude, double longitude, double altitude)
+{
+    if (ihm != NULL)
+    {
+        move(LATITUDE_Y, 0);     // move to begining of line
+        clrtoeol();              // clear line
+        mvprintw(LATITUDE_Y, LATITUDE_X, "Latitude: %d", latitude);
+
+        move(LONGITUDE_Y, 0);     // move to begining of line
+        clrtoeol();              // clear line
+        mvprintw(LONGITUDE_Y, LONGITUDE_X, "Longitude: %d", longitude);
+
+        move(ALTITUDE_Y, 0);     // move to begining of line
+        clrtoeol();              // clear line
+        mvprintw(ALTITUDE_Y, ALTITUDE_X, "Altitude: %d", altitude);
     }
 }
