@@ -17,8 +17,8 @@
 #define sizeof_array(array) (sizeof(array)/sizeof(array[0]))
 
 
-typedef enum VALUES_BUFFER_STATES {
+typedef enum VALUES_BUFFER_STATUS {
     VALUES_BUFFER_CLEAN, // The buffer does not need to be dumped
     VALUES_BUFFER_DIRTY // The buffer has been modified and needs to be dumped
-} VALUES_BUFFER_STATES;
+} VALUES_BUFFER_STATUS;
 
