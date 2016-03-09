@@ -85,6 +85,9 @@
 #define ALTITUDE_X 0
 #define ALTITUDE_Y 16
 
+#define COMMAND_X 0
+#define COMMAND_Y 18
+
 /*****************************************
  *
  *             private header:
@@ -195,7 +198,7 @@ void *IHM_InputProcessing(void *data)
 {
     IHM_t *ihm = (IHM_t *) data;
     int key = 0;
-    
+
     struct timeval currentTime, beginAutomationTime;
     bool automationActive = false;
 
@@ -203,8 +206,6 @@ void *IHM_InputProcessing(void *data)
     {
         while (ihm->run)
         {
-            time_t now = time(0);
-
             key = getch();
             
             if ((key == 27) || (key =='q'))
@@ -319,15 +320,15 @@ void *IHM_InputProcessing(void *data)
                     if (automationActive == true)
                     {
                         gettimeofday(&currentTime, NULL);
-                        if((currentTime.tv_usec - beginAutomationTime.tv_usec) < 500)
+                        if((currentTime.tv_usec - beginAutomationTime.tv_usec) < 2000)
                         {
                             ihm->onInputEventCallback (IHM_INPUT_EVENT_UP, ihm->customData);
                         }
-                        if((currentTime.tv_usec - beginAutomationTime.tv_usec) >= 500 && (currentTime.tv_usec - beginAutomationTime.tv_usec) < 1000)
+                        if((currentTime.tv_usec - beginAutomationTime.tv_usec) >= 2000 && (currentTime.tv_usec - beginAutomationTime.tv_usec) < 6000)
                         {
                             ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
                         }
-                        if((currentTime.tv_usec - beginAutomationTime.tv_usec) >= 1000)
+                        if((currentTime.tv_usec - beginAutomationTime.tv_usec) >= 6000)
                         {
                             ihm->onInputEventCallback (IHM_INPUT_EVENT_LAND, ihm->customData);
                             automationActive = false;
@@ -401,15 +402,15 @@ void IHM_PrintSpeed(IHM_t *ihm, float speedX, float speedY, float speedZ)
     {
         move(SPEEDX_Y, 0);     // move to begining of line
         clrtoeol();              // clear line
-        mvprintw(SPEEDX_Y, SPEEDX_X, "Speed X: %.5f", speedX);
+        mvprintw(SPEEDX_Y, SPEEDX_X, "Speed X: %f", speedX);
 
         move(SPEEDY_Y, 0);     // move to begining of line
         clrtoeol();              // clear line
-        mvprintw(SPEEDY_Y, SPEEDY_X, "Speed Y: %.5f", speedY);
+        mvprintw(SPEEDY_Y, SPEEDY_X, "Speed Y: %f", speedY);
 
         move(SPEEDZ_Y, 0);     // move to begining of line
         clrtoeol();              // clear line
-        mvprintw(SPEEDZ_Y, SPEEDZ_X, "Speed Z: %.5f", speedZ);
+        mvprintw(SPEEDZ_Y, SPEEDZ_X, "Speed Z: %f", speedZ);
     }
 }
 
@@ -428,5 +429,33 @@ void IHM_PrintPosition(IHM_t *ihm, double latitude, double longitude, double alt
         move(ALTITUDE_Y, 0);     // move to begining of line
         clrtoeol();              // clear line
         mvprintw(ALTITUDE_Y, ALTITUDE_X, "Altitude: %d", altitude);
+    }
+}
+
+void IHM_PrintCommand(IHM_t *ihm, int event)
+{
+    if (ihm != NULL)
+    {
+        move(COMMAND_Y, 0);     // move to begining of line
+        clrtoeol();             // clear line
+        switch (event)
+        {
+            case 3:
+                mvprintw(COMMAND_Y, COMMAND_X, "Command: TAKEOFF");
+                break;
+            case 4:
+                mvprintw(COMMAND_Y, COMMAND_X, "Command: LAND");
+                break;
+            case 5:
+                mvprintw(COMMAND_Y, COMMAND_X, "Command: UP");
+                break;
+            case 9:
+                mvprintw(COMMAND_Y, COMMAND_X, "Command: FORWARD");
+                break;
+            default:
+                mvprintw(COMMAND_Y, COMMAND_X, "Command: ....");
+                break;
+        }
+        
     }
 }

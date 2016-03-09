@@ -65,7 +65,7 @@
 #define BEBOP_IP_ADDRESS "192.168.42.1"
 #define BEBOP_DISCOVERY_PORT 44444
 
-#define DISPLAY_WITH_MPLAYER 1
+#define DISPLAY_WITH_MPLAYER 0
 
 #define IHM
 /*****************************************
@@ -106,12 +106,12 @@ int main (int argc, char *argv[])
         if (DISPLAY_WITH_MPLAYER)
         {
             // fork the process to launch mplayer
-            /*if ((child = fork()) == 0)
+            if ((child = fork()) == 0)
             {
                 execlp("xterm", "xterm", "-e", "mplayer", "-demuxer",  "h264es", "video_fifo.h264", "-benchmark", "-really-quiet", NULL);
                 ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Missing mplayer, you will not see the video. Please install mplayer and xterm.");
                 return -1;
-            }*/
+            }
         }
         
         if (DISPLAY_WITH_MPLAYER)
@@ -518,6 +518,14 @@ void positionStateChanged (double latitude, double longitude, double altitude)
     } 
 }
 
+void commandChanged (int event)
+{
+    if (ihm != NULL)
+    {   
+        IHM_PrintCommand (ihm, event);
+    } 
+}
+
 eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, void *customData)
 {
     if (videoOut != NULL)
@@ -577,6 +585,7 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
     ARCONTROLLER_Device_t *deviceController = (ARCONTROLLER_Device_t *)customData;
     eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
     
+    commandChanged(event);
     switch (event)
     {
         case IHM_INPUT_EVENT_EXIT:
