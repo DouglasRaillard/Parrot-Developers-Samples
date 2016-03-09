@@ -24,7 +24,7 @@ FIELD_TYPE temp_buffer[sizeof_array(buffer)];
 uint64_t _getCurrentTimestampMicro() {
     // Get timestamp in microseconds
     struct timespec tms;
-    if (clock_gettime(CLOCK_REALTIME, &tms)) {
+    if (clock_gettime(CLOCK_MONOTONIC, &tms)) {
         return -2;
     }
     /* seconds, multiplied with 1 million */
