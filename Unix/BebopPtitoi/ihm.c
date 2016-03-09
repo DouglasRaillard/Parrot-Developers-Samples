@@ -325,11 +325,16 @@ void *IHM_InputProcessing(void *data)
                             ihm->onInputEventCallback (IHM_INPUT_EVENT_UP, ihm->customData);
                         }
                         if((((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) >= 2000)
-                            && (((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) < 6000))
+                            && (((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) < 4000))
                         {
                             ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
                         }
-                        if(((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) >= 6000)
+                        if((((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) >= 4000)
+                            && (((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) < 5000))
+                        {
+                            ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
+                        }
+                        if(((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) >= 5000)
                         {
                             ihm->onInputEventCallback (IHM_INPUT_EVENT_LAND, ihm->customData);
                             automationActive = false;
