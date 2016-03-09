@@ -400,6 +400,7 @@ void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICT
         }
     }
 
+    //if attitude has changed
     if ((commandKey == ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ATTITUDECHANGED) && (elementDictionary != NULL))
     {
         ARCONTROLLER_DICTIONARY_ARG_t *arg = NULL;
@@ -427,6 +428,7 @@ void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICT
         }
     }
 
+    //if speed has changed
     if ((commandKey == ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_SPEEDCHANGED) && (elementDictionary != NULL))
     {
         ARCONTROLLER_DICTIONARY_ARG_t *arg = NULL;
@@ -451,6 +453,34 @@ void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICT
                 speedZ = arg->value.Float;
             }
             speedStateChanged(speedX, speedY, speedZ);
+        }
+    }
+
+    //if GPS position has changed
+    if ((commandKey == ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_POSITIONCHANGED) && (elementDictionary != NULL))
+    {
+        ARCONTROLLER_DICTIONARY_ARG_t *arg = NULL;
+        ARCONTROLLER_DICTIONARY_ELEMENT_t *element = NULL;
+        HASH_FIND_STR (elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, element);
+        double latitude = 0, longitude = 0, altitude = 0;
+        if (element != NULL)
+        {
+            HASH_FIND_STR (element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_POSITIONCHANGED_LATITUDE, arg);
+            if (arg != NULL)
+            {
+                latitude = arg->value.Double;
+            }
+            HASH_FIND_STR (element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_POSITIONCHANGED_LONGITUDE, arg);
+            if (arg != NULL)
+            {
+                longitude = arg->value.Double;
+            }
+            HASH_FIND_STR (element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_POSITIONCHANGED_ALTITUDE, arg);
+            if (arg != NULL)
+            {
+                altitude = arg->value.Double;
+            }
+            positionStateChanged(latitude, longitude, altitude);
         }
     }
 }
@@ -478,6 +508,14 @@ void speedStateChanged (float roll, float pitch, float yaw)
     if (ihm != NULL)
     {   
         IHM_PrintSpeed (ihm, roll, pitch, yaw);
+    } 
+}
+
+void positionStateChanged (double latitude, double longitude, double altitude)
+{
+    if (ihm != NULL)
+    {   
+        IHM_PrintPosition (ihm, latitude, longitude, altitude);
     } 
 }
 

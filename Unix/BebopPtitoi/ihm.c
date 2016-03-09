@@ -77,6 +77,13 @@
 #define SPEEDZ_X 0
 #define SPEEDZ_Y 12
 
+#define LATITUDE_X 0
+#define LATITUDE_Y 14
+#define LONGITUDE_X 0
+#define LONGITUDE_Y 15
+#define ALTITUDE_X 0
+#define ALTITUDE_Y 16
+
 /*****************************************
  *
  *             private header:
@@ -356,5 +363,23 @@ void IHM_PrintSpeed(IHM_t *ihm, float speedX, float speedY, float speedZ)
         move(SPEEDZ_Y, 0);     // move to begining of line
         clrtoeol();              // clear line
         mvprintw(SPEEDZ_Y, SPEEDZ_X, "Speed Z: %.5f", speedZ);
+    }
+}
+
+void IHM_PrintPosition(IHM_t *ihm, double latitude, double longitude, double altitude)
+{
+    if (ihm != NULL)
+    {
+        move(LATITUDE_Y, 0);     // move to begining of line
+        clrtoeol();              // clear line
+        mvprintw(LATITUDE_Y, LATITUDE_X, "Latitude: %d", latitude);
+
+        move(LONGITUDE_Y, 0);     // move to begining of line
+        clrtoeol();              // clear line
+        mvprintw(LONGITUDE_Y, LONGITUDE_X, "Longitude: %d", longitude);
+
+        move(ALTITUDE_Y, 0);     // move to begining of line
+        clrtoeol();              // clear line
+        mvprintw(ALTITUDE_Y, ALTITUDE_X, "Altitude: %d", altitude);
     }
 }
