@@ -46,6 +46,9 @@ void batteryStateChanged (uint8_t percent);
 //IHM speed update
 void speedStateChanged (float xSpeed, float ySpeed, float zSpeed);
 
+//IHM Angle changed
+void angleStateChanged (float roll, float pitch, float yaw);
+
 //IHM position udpdate
 void positionStateChanged (double latitude, double longitude, double altitude);
 

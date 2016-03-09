@@ -70,12 +70,19 @@
 #define SPEEDZ_X 0
 #define SPEEDZ_Y 7
 
+#define ROLL_X 0
+#define ROLL_Y 9
+#define PITCH_X 0
+#define PITCH_Y 10
+#define YAW_X 0
+#define YAW_Y 11
+
 #define LATITUDE_X 0
-#define LATITUDE_Y 9
+#define LATITUDE_Y 13
 #define LONGITUDE_X 0
-#define LONGITUDE_Y 10
+#define LONGITUDE_Y 14
 #define ALTITUDE_X 0
-#define ALTITUDE_Y 11
+#define ALTITUDE_Y 15
 
 /*****************************************
  *
@@ -329,15 +336,33 @@ void IHM_PrintSpeed(IHM_t *ihm, float xSpeed, float ySpeed, float zSpeed)
     {
         move(SPEEDX_Y, 0);
         clrtoeol();
-        mvprintw(SPEEDX_Y, SPEEDX_X, "Speed on X: %f", xSpeed);
+        mvprintw(SPEEDX_Y, SPEEDX_X, "Speed on X: %.5f", xSpeed);
 
         move(SPEEDY_Y, 0);
         clrtoeol();
-        mvprintw(SPEEDY_Y, SPEEDY_X, "Speed on Y: %f", ySpeed);
+        mvprintw(SPEEDY_Y, SPEEDY_X, "Speed on Y: %.5f", ySpeed);
 
         move(SPEEDZ_Y, 0);
         clrtoeol();
-        mvprintw(SPEEDZ_Y, SPEEDZ_X, "Speed on Z: %f", zSpeed);
+        mvprintw(SPEEDZ_Y, SPEEDZ_X, "Speed on Z: %.5f", zSpeed);
+    }
+}
+
+void IHM_PrintAngle(IHM_t *ihm, float roll, float pitch, float yaw)
+{
+    if (ihm != NULL)
+    {
+        move(ROLL_Y, 0);
+        clrtoeol();
+        mvprintw(ROLL_Y, ROLL_X, "roll : %.5f", roll);
+
+        move(PITCH_Y, 0);
+        clrtoeol();
+        mvprintw(PITCH_Y, PITCH_X, "pitch : %.5f", pitch);
+
+        move(YAW_Y, 0);
+        clrtoeol();
+        mvprintw(YAW_Y, YAW_X, "yaw : %.5f", yaw);
     }
 }
 
@@ -347,15 +372,15 @@ void IHM_PrintPosition(IHM_t *ihm, double latitude, double longitude, double alt
     {
         move(LATITUDE_Y, 0);
         clrtoeol();
-        mvprintw(LATITUDE_Y, LATITUDE_X, "latitude : %f", latitude);
+        mvprintw(LATITUDE_Y, LATITUDE_X, "latitude : %d", latitude);
 
         move(LONGITUDE_Y, 0);
         clrtoeol();
-        mvprintw(LONGITUDE_Y, LONGITUDE_X, "Speed on Y: %f", longitude);
+        mvprintw(LONGITUDE_Y, LONGITUDE_X, "longitude : %d", longitude);
 
         move(ALTITUDE_Y, 0);
         clrtoeol();
-        mvprintw(ALTITUDE_Y, ALTITUDE_X, "Speed on Z: %f", altitude);
+        mvprintw(ALTITUDE_Y, ALTITUDE_X, "altitude : %d", altitude);
     }
 }
 
