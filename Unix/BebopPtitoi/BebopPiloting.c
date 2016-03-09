@@ -488,7 +488,6 @@ void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICT
 void batteryStateChanged (uint8_t percent)
 {
     // callback of changing of battery level
-    
     if (ihm != NULL)
     {
         IHM_PrintBattery (ihm, percent);
@@ -572,7 +571,6 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
 
 
 // IHM callbacks: 
-
 void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
 {
     // Manage IHM input events
