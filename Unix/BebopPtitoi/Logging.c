@@ -17,9 +17,9 @@ char logging_field_names[] =
 uint64_t logging_start_timestamp_micro = 0;
 
 FILE *stream;
-FIELD_TYPE buffer[FIELD_LAST_ITEM];
+FIELD_TYPE buffer[FIELD_LAST_ITEM] __attribute__ ((aligned (8)));
 LOGGING_BUFFER_STATUS buffer_status = 0;
-FIELD_TYPE temp_buffer[sizeof_array(buffer)];
+FIELD_TYPE temp_buffer[sizeof_array(buffer)] __attribute__ ((aligned (8)));
 
 uint64_t _getCurrentTimestampMicro() {
     // Get timestamp in microseconds
