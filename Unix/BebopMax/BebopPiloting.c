@@ -483,7 +483,7 @@ void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICT
         HASH_FIND_STR (elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, element);
         if (element != NULL)
         {
-            float speedX, speedY, speedZ;
+            float speedX, speedY, speedZ = 0;
 
             HASH_FIND_STR (element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_SPEEDCHANGED_SPEEDX, arg);
             if (arg != NULL)
@@ -502,6 +502,35 @@ void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICT
             }
 
             speedStateChanged(speedX, speedY, speedZ);
+        }
+    }
+
+    if ((commandKey == ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ATTITUDECHANGED) && (elementDictionary != NULL))
+    {
+        ARCONTROLLER_DICTIONARY_ARG_t *arg = NULL;
+        ARCONTROLLER_DICTIONARY_ELEMENT_t *element = NULL;
+        HASH_FIND_STR (elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, element);
+        if (element != NULL)
+        {
+            float roll, pitch, yaw;
+
+            HASH_FIND_STR (element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ATTITUDECHANGED_ROLL, arg);
+            if (arg != NULL)
+            {
+                roll = arg->value.Float;
+            }
+            HASH_FIND_STR (element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ATTITUDECHANGED_PITCH, arg);
+            if (arg != NULL)
+            {
+                pitch = arg->value.Float;
+            }
+            HASH_FIND_STR (element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ATTITUDECHANGED_YAW, arg);
+            if (arg != NULL)
+            {
+                yaw = arg->value.Float;
+            }
+
+            //angleStateChanged(roll, pitch, yaw);
         }
     }
 
@@ -530,7 +559,7 @@ void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICT
                 altitude = arg->value.Double;
             }
 
-            positionStateChanged(latitude, longitude, altitude);
+            //positionStateChanged(latitude, longitude, altitude);
         }
     }
 
@@ -554,6 +583,16 @@ void speedStateChanged (float xSpeed, float ySpeed, float zSpeed)
     if( ihm != NULL)
     {
         IHM_PrintSpeed (ihm, xSpeed, ySpeed, zSpeed);
+    }
+}
+
+void angleStateChanged(float roll, float pitch, float yaw)
+{
+    //TODO
+
+    if( ihm != NULL)
+    {
+        IHM_PrintSpeed (ihm, roll, pitch, yaw);
     }
 }
 

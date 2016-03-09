@@ -72,5 +72,7 @@ void IHM_PrintHeader(IHM_t *ihm, char *headerStr);
 void IHM_PrintInfo(IHM_t *ihm, char *infoStr);
 void IHM_PrintBattery(IHM_t *ihm, uint8_t percent);
 void IHM_PrintSpeed(IHM_t *ihm, float xSpeed, float ySpeed, float zSpeed);
+void IHM_PrintAngle(IHM_t *ihm, float roll, float pitch, float yaw);
+void IHM_PrintPosition(IHM_t *ihm, double latitude, double longitude, double altitude);
 
 #endif /* _BEBOP_PILOTING_IHM_H_ */
