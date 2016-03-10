@@ -7,12 +7,12 @@
 
 #include "_Logging.h"
 
-#define DEFINE_FIELD_NAME(name) #name","
+#define DECLARE_FIELD_NAME(name) #name","
 char logging_field_names[] =
 "FIELD_TIMESTAMP,"
 #include "LoggingFieldNames.h"
 ;
-#undef DEFINE_FIELD_NAME
+#undef DECLARE_FIELD_NAME
 
 uint64_t logging_start_timestamp_micro = 0;
 
