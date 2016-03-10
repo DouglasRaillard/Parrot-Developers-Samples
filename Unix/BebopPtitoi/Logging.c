@@ -52,9 +52,9 @@ char *getLogFields() {
     return logging_field_names;
 }
 
-int initLogging(const char *path) {
+int initLogging(const char *path, const char *mode) {
     logging_start_timestamp_micro = _getCurrentTimestampMicro();
-    stream = fopen(path, "wb");
+    stream = fopen(path, mode);
     if (!stream) {
         return -1;
     }
