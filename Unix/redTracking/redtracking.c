@@ -7,7 +7,22 @@ using namespace std;
 
 enum EnableTracking{OBJECT_DETECTED,OBJECT_NOT_DETECTED};
 
+VideoCapture cap; //capture the video from web cam
 
+int iLowH = 0;
+int iHighH = 179;
+
+int iLowS = 0;
+int iHighS = 255;
+
+int iLowV = 0;
+int iHighV = 255;
+
+EnableTracking trackingStatus = OBJECT_NOT_DETECTED;
+std::vector<cv::Vec4i> hierarchy;
+std::vector<std::vector<cv::Point> > contours;
+std::vector<std::vector<cv::Point> > contours_poly;
+std::vector<cv::Rect> targetZone;
 
 void callbackButton(EnableTracking &trackingStatus)
 {
@@ -21,11 +36,8 @@ void callbackButton(EnableTracking &trackingStatus)
     }
 }
 
-
-
-int main( int argc, char** argv )
-{
-    VideoCapture cap(0); //capture the video from web cam
+int init_redtracking() {
+    //VideoCapture cap(0); //capture the video from web cam
 
     if ( !cap.isOpened() )  // if not success, exit program
     {
@@ -35,20 +47,7 @@ int main( int argc, char** argv )
 
     namedWindow("Autopilote Target Setter", CV_WINDOW_AUTOSIZE); //create a window called "Control"
 
-    EnableTracking trackingStatus = OBJECT_NOT_DETECTED;
-    std::vector<cv::Vec4i> hierarchy;
-    std::vector<std::vector<cv::Point> > contours;
-    std::vector<std::vector<cv::Point> > contours_poly;
-    std::vector<cv::Rect> targetZone;
 
-    int iLowH = 0;
-    int iHighH = 179;
-
-    int iLowS = 0;
-    int iHighS = 255;
-
-    int iLowV = 0;
-    int iHighV = 255;
 
     //Create trackbars in "Autopilote Target Setter" window
     cvCreateTrackbar("LowH", "Autopilote Target Setter", &iLowH, 179); //Hue (0 - 179)
@@ -61,7 +60,11 @@ int main( int argc, char** argv )
     cvCreateTrackbar("HighV", "Autopilote Target Setter", &iHighV, 255);
 
     //cvCreateButton("toogle tracking",callbackButton(trackingStatus),NULL,CV_PUSH_BUTTON,1);
+}
 
+
+int redtracking_frame_callback()
+{
     while (true)
     {
         Mat imgOriginal;
