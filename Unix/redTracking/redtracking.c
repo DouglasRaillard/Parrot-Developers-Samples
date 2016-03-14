@@ -55,7 +55,7 @@ int init_redtracking() {
     if ( !cap.isOpened() )  // if not success, exit program
     {
         cout << "Cannot open the H.264 stream from named pipe" << endl;
-        return -1;
+        exit(-1);
     }
 
     namedWindow("Autopilote Target Setter", CV_WINDOW_AUTOSIZE); //create a window called "Control"
