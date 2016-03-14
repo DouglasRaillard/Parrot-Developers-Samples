@@ -2,7 +2,7 @@ EXEC_NAME=BebopPilotingNewAPI #output filename
 CC=g++
 SDK_DIR=../../../../out
 IDIR=./
-CFLAGS=-I$(IDIR) -I$(SDK_DIR)/Unix-base/staging/usr/include -I/usr/include/opencv
+CFLAGS=-g3 -I$(IDIR) -I$(SDK_DIR)/Unix-base/staging/usr/include -I/usr/include/opencv
 
 
 OBJDIR=obj

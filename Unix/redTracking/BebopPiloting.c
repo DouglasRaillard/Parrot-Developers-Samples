@@ -70,6 +70,7 @@ extern "C" {
 #define BEBOP_DISCOVERY_PORT 44444
 
 #define DISPLAY_WITH_MPLAYER 0
+#define REDTRACKING_ENABLED 1
 
 #define IHM
 /*****************************************
@@ -94,6 +95,7 @@ int frameNb = 0;
 ARSAL_Sem_t stateSem;
 int isBebop2 = 0;
 
+
 int main (int argc, char *argv[])
 {
     // local declarations
@@ -104,6 +106,7 @@ int main (int argc, char *argv[])
     eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
     pid_t child = 0;
     ARSAL_Sem_Init (&(stateSem), 0, 0);
+
 
     if (!failed)
     {
@@ -226,6 +229,13 @@ int main (int argc, char *argv[])
             ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%", ARCONTROLLER_Error_ToString(error));
         }
     }
+
+    // Redtracking  MUST INIT AFTER VIDEO STREAM
+    int init_redtracking();
+    init_redtracking();
+    printf("init redtracking passed\n");
+    //return 42;
+
 
     if (!failed)
     {
@@ -542,6 +552,10 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
                 fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
 
                 fflush (videoOut);
+            }
+            if (REDTRACKING_ENABLED) {
+                int redtracking_frame_callback();
+                redtracking_frame_callback();
             }
         }
 

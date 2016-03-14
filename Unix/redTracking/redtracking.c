@@ -36,17 +36,17 @@ void callbackButton(EnableTracking &trackingStatus)
     }
 }
 
-int init_redtracking() {
-    //VideoCapture cap(0); //capture the video from web cam
+int _init_redtracking() {
+    //cap = VideoCapture("./video_fifo.h264");
+    cap.set(CV_CAP_PROP_FOURCC, CV_FOURCC('H', '2', '6', '4'));
 
     if ( !cap.isOpened() )  // if not success, exit program
     {
         cout << "Cannot open the web cam" << endl;
-        return -1;
+        //return -1;
     }
 
     namedWindow("Autopilote Target Setter", CV_WINDOW_AUTOSIZE); //create a window called "Control"
-
 
 
     //Create trackbars in "Autopilote Target Setter" window
@@ -62,8 +62,17 @@ int init_redtracking() {
     //cvCreateButton("toogle tracking",callbackButton(trackingStatus),NULL,CV_PUSH_BUTTON,1);
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+int init_redtracking() {
+    return _init_redtracking();
+}
+#ifdef __cplusplus
+}
+#endif
 
-int redtracking_frame_callback()
+int _redtracking_frame_callback()
 {
     while (true)
     {
@@ -126,3 +135,15 @@ int redtracking_frame_callback()
     return 0;
 
 }
+
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+int redtracking_frame_callback() {
+    return _redtracking_frame_callback();
+}
+#ifdef __cplusplus
+}
+#endif
