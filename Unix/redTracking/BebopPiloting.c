@@ -122,14 +122,14 @@ int main (int argc, char *argv[])
 //                 return -1;
 //             }
 //         }
+
+        if (DISPLAY_WITH_MPLAYER)
+        {
+            videoOut = fopen("./video_fifo.h264", "w+");
+        }
         if (!failed)
         {
             // Redtracking  MUST INIT AFTER VIDEO STREAM
-            init_redtracking();
-        }
-        if (DISPLAY_WITH_MPLAYER)
-        {
-            videoOut = fopen("./video_fifo.h264", "w");
         }
     }
 
@@ -551,6 +551,7 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
                 fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
 
                 fflush (videoOut);
+                init_redtracking();
             }
         }
 
