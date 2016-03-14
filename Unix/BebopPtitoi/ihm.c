@@ -365,7 +365,7 @@ void *IHM_InputProcessing(void *data)
                     else if (followingActive == true)
                     {
                         automationActive = false;
-                        FollowingNavigation(ihm, &followingActive, state, temp);
+                        FollowingNavigation(ihm, &followingActive, &state, temp);
                         temp++;
                     }
                     else
@@ -418,21 +418,23 @@ void GetObjectCoordonnees(double *X1, double *Y1, double *X2, double *Y2, double
     *Y1 = 0;
 }
 
-void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE state, int temp)
+void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state, int temp)
 {
     if(*followingActive)
     {
         double X1, Y1, X2, Y2, X3, Y3;
-        switch(state)
+        switch(*state)
         {
             case STATE_NONE:
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
                 break;
+
             case STATE_STAB:
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
                 if(temp > 100)
-                    state = STATE_SEARCH;
+                    *state = STATE_SEARCH;
                 break;
+
             case STATE_INITIAL_SEARCH:
                 GetObjectCoordonnees(&X1, &Y1, &X2, &Y2, &X3, &Y3);
                 if(X1 != errorValue && Y1 != errorValue)
@@ -441,14 +443,16 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE state,
                     else if(X1 > thresholdRight)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                     else
-                        state = STATE_FOLLOW;
+                        *state = STATE_FOLLOW;
                 else
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                 break;
+
             case STATE_FOLLOW:
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
-                state = STATE_SEARCH;
+                *state = STATE_SEARCH;
                 break;
+
             case STATE_SEARCH:
                 GetObjectCoordonnees(&X1, &Y1, &X2, &Y2, &X3, &Y3);
                 if(X1 != errorValue && Y1 != errorValue)
@@ -457,17 +461,19 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE state,
                     else if(X1 > thresholdRight)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                     else
-                        state = STATE_FOLLOW;
+                        *state = STATE_FOLLOW;
                 else
-                    state = STATE_LANDING;
+                    *state = STATE_LANDING;
                 break;
+
             case STATE_LANDING:
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_LAND, ihm->customData);
-                state = STATE_NONE;
+                *state = STATE_NONE;
                 *followingActive = false;
                 break;
+
             default:
-                state = STATE_NONE;
+                *state = STATE_NONE;
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
                 *followingActive = false;
                 break;
