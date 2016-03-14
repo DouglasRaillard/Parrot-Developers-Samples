@@ -1,6 +1,8 @@
 #include <iostream>
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include<pthread.h>
+#include "redtracking.h"
 
 using namespace cv;
 using namespace std;
@@ -24,6 +26,12 @@ std::vector<std::vector<cv::Point> > contours;
 std::vector<std::vector<cv::Point> > contours_poly;
 std::vector<cv::Rect> targetZone;
 
+ARSAL_Thread_t redtracking_thread = NULL;
+MEASURED_DATA_T measured_data_buffer;
+pthread_mutex_t measured_data_lock;
+
+
+
 void callbackButton(EnableTracking &trackingStatus)
 {
     if(trackingStatus == OBJECT_DETECTED)
@@ -36,14 +44,18 @@ void callbackButton(EnableTracking &trackingStatus)
     }
 }
 
-int _init_redtracking() {
-    //cap = VideoCapture("./video_fifo.h264");
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int init_redtracking() {
+    cap = VideoCapture("./video_fifo.h264");
     cap.set(CV_CAP_PROP_FOURCC, CV_FOURCC('H', '2', '6', '4'));
 
     if ( !cap.isOpened() )  // if not success, exit program
     {
-        cout << "Cannot open the web cam" << endl;
-        //return -1;
+        cout << "Cannot open the H.264 stream from named pipe" << endl;
+        return -1;
     }
 
     namedWindow("Autopilote Target Setter", CV_WINDOW_AUTOSIZE); //create a window called "Control"
@@ -60,30 +72,32 @@ int _init_redtracking() {
     cvCreateTrackbar("HighV", "Autopilote Target Setter", &iHighV, 255);
 
     //cvCreateButton("toogle tracking",callbackButton(trackingStatus),NULL,CV_PUSH_BUTTON,1);
+
+    // Display the window
+    waitKey(0);
+
+    pthread_mutex_init(&measured_data_lock, NULL);
+
+    // Create OpenCV thread
+    ARSAL_Thread_Create(&redtracking_thread, redtracking_thread_loop, NULL);
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-int init_redtracking() {
-    return _init_redtracking();
-}
-#ifdef __cplusplus
-}
-#endif
 
-int _redtracking_frame_callback()
-{
-    while (true)
-    {
-        Mat imgOriginal;
 
+
+
+
+void *redtracking_thread_loop(void* data) {
+
+    Mat imgOriginal;
+
+    while(true) {
         bool bSuccess = cap.read(imgOriginal); // read a new frame from video
 
         if (!bSuccess) //if not success, break loop
         {
             cout << "Cannot read a frame from video stream" << endl;
-            break;
+            //break;
         }
 
         Mat imgHSV;
@@ -101,7 +115,6 @@ int _redtracking_frame_callback()
         //morphological closing (fill small holes in the foreground)
         dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
         erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
-
 
         if(trackingStatus == OBJECT_DETECTED)
         {
@@ -125,25 +138,32 @@ int _redtracking_frame_callback()
         imshow("Thresholded Image", imgThresholded);
         imshow("Original", imgOriginal); //show the original image
 
-        if (waitKey(30) == 27)
-        {
-            cout << "esc key is pressed by user" << endl;
-            break;
-        }
+        waitKey(25);
     }
-
     return 0;
-
 }
 
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-int redtracking_frame_callback() {
-    return _redtracking_frame_callback();
+
+MEASURED_DATA_T redtracking_get_measured_data() {
+    MEASURED_DATA_T temp;
+    pthread_mutex_lock(&measured_data_lock);
+    temp = measured_data_buffer;
+    pthread_mutex_unlock(&measured_data_lock);
+    return temp;
+
 }
+
+
+void redtracking_update_measured_data(MEASURED_DATA_T* data) {
+    pthread_mutex_lock(&measured_data_lock);
+    measured_data_buffer = *data;
+    pthread_mutex_unlock(&measured_data_lock);
+}
+
+
+
 #ifdef __cplusplus
 }
 #endif

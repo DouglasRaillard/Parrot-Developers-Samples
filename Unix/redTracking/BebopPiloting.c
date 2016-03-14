@@ -56,6 +56,8 @@ extern "C" {
 
 #include "BebopPiloting.h"
 #include "ihm.h"
+#include "redtracking.h"
+
 
 /*****************************************
  *
@@ -230,13 +232,6 @@ int main (int argc, char *argv[])
         }
     }
 
-    // Redtracking  MUST INIT AFTER VIDEO STREAM
-    int init_redtracking();
-    init_redtracking();
-    printf("init redtracking passed\n");
-    //return 42;
-
-
     if (!failed)
     {
         IHM_PrintInfo(ihm, "Connecting ...");
@@ -276,6 +271,9 @@ int main (int argc, char *argv[])
             failed = 1;
         }
     }
+
+    // Redtracking  MUST INIT AFTER VIDEO STREAM
+    init_redtracking();
 
     if (!failed)
     {
@@ -552,10 +550,6 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
                 fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
 
                 fflush (videoOut);
-            }
-            if (REDTRACKING_ENABLED) {
-                int redtracking_frame_callback();
-                redtracking_frame_callback();
             }
         }
 
