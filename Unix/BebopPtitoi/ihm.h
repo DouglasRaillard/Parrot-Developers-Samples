@@ -52,6 +52,16 @@ typedef enum
     IHM_INPUT_EVENT_ROLL_RIGHT,
 }eIHM_INPUT_EVENT;
 
+typedef enum
+{
+    STATE_NONE,
+    STATE_STAB,
+    STATE_INITIAL_SEARCH,
+    STATE_FOLLOW,
+    STATE_SEARCH,
+    STATE_LANDING,
+}COMMAND_STATE;
+
 typedef void (*IHM_onInputEvent_t) (eIHM_INPUT_EVENT event, void *customData);
 
 typedef struct
@@ -68,12 +78,18 @@ void IHM_Delete (IHM_t **ihm);
 
 void IHM_setCustomData(IHM_t *ihm, void *customData);
 
+void AutonomousNavigation(IHM_t *ihm, struct timeval beginTime, bool *automationActive);
+
+void GetObjectCoordonnees(double *X1, double *Y1, double *X2, double *Y2, double *X3, double *Y3);
+void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE state, int temp);
+
 void IHM_PrintHeader(IHM_t *ihm, char *headerStr);
 void IHM_PrintInfo(IHM_t *ihm, char *infoStr);
 void IHM_PrintBattery(IHM_t *ihm, uint8_t percent);
 void IHM_PrintAttitude(IHM_t *ihm, float roll, float pitch, float yaw);
 void IHM_PrintSpeed(IHM_t *ihm, float speedX, float speedY, float speedZ);
 void IHM_PrintPosition(IHM_t *ihm, double latitude, double longitude, double altitude);
+void IHM_PrintAltitude(IHM_t *ihm, double altitude);
 void IHM_PrintCommand(IHM_t *ihm, int event);
 
 #endif /* _BEBOP_PILOTING_IHM_H_ */
