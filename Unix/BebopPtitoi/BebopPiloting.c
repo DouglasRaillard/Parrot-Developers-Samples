@@ -655,13 +655,15 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
         case IHM_INPUT_EVENT_RIGHT:
             if(deviceController != NULL)
             {
-                error = deviceController->aRDrone3->setPilotingPCMDYaw(deviceController->aRDrone3, 50);
+                //error = deviceController->aRDrone3->setPilotingPCMDYaw(deviceController->aRDrone3, 50);
+                error = deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 50, -10, 0);
             }
             break;
         case IHM_INPUT_EVENT_LEFT:
             if(deviceController != NULL)
             {
-                error = deviceController->aRDrone3->setPilotingPCMDYaw(deviceController->aRDrone3, -50);
+                //error = deviceController->aRDrone3->setPilotingPCMDYaw(deviceController->aRDrone3, -50);
+                error = deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, -50, 10, 0);
             }
             break;
         case IHM_INPUT_EVENT_FORWARD:
