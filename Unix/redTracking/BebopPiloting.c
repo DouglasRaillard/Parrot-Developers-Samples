@@ -130,6 +130,8 @@ int main (int argc, char *argv[])
         if (!failed)
         {
             // Redtracking  MUST INIT AFTER VIDEO STREAM
+            init_redtracking();
+
         }
     }
 
@@ -551,7 +553,6 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
                 fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
 
                 fflush (videoOut);
-                init_redtracking();
             }
         }
 

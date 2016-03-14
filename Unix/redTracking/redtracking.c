@@ -75,9 +75,10 @@ int init_redtracking() {
 
 void *redtracking_thread_loop(void* data) {
     //cap.set(CV_CAP_PROP_FOURCC, CV_FOURCC('M','J','P','G'));
-    cap.set(CV_CAP_PROP_FOURCC, CV_FOURCC('H', '2', '6', '4'));
     cap = VideoCapture("./video_fifo.h264");
 //    cap = VideoCapture("./h264_dump");
+    cap.set(CV_CAP_PROP_FOURCC, CV_FOURCC('H', '2', '6', '4'));
+
 
     if ( !cap.isOpened() )  // if not success, exit program
     {
@@ -93,7 +94,7 @@ void *redtracking_thread_loop(void* data) {
         if (!bSuccess) //if not success, break loop
         {
             cout << "Cannot read a frame from video stream" << endl;
-            //break;
+            continue;
         }
 
         Mat imgHSV;
