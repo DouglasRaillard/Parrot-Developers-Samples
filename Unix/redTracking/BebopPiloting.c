@@ -71,7 +71,7 @@ extern "C" {
 #define BEBOP_IP_ADDRESS "192.168.42.1"
 #define BEBOP_DISCOVERY_PORT 44444
 
-#define DISPLAY_WITH_MPLAYER 0
+#define DISPLAY_WITH_MPLAYER 1
 #define REDTRACKING_ENABLED 1
 
 #define IHM
@@ -112,17 +112,21 @@ int main (int argc, char *argv[])
 
     if (!failed)
     {
-        if (DISPLAY_WITH_MPLAYER)
+//         if (DISPLAY_WITH_MPLAYER)
+//         {
+//             // fork the process to launch mplayer
+//             if ((child = fork()) == 0)
+//             {
+//                 execlp("xterm", "xterm", "-e", "mplayer", "-demuxer",  "h264es", "video_fifo.h264", "-benchmark", "-really-quiet", NULL);
+//                 ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Missing mplayer, you will not see the video. Please install mplayer and xterm.");
+//                 return -1;
+//             }
+//         }
+        if (!failed)
         {
-            // fork the process to launch mplayer
-            if ((child = fork()) == 0)
-            {
-                execlp("xterm", "xterm", "-e", "mplayer", "-demuxer",  "h264es", "video_fifo.h264", "-benchmark", "-really-quiet", NULL);
-                ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Missing mplayer, you will not see the video. Please install mplayer and xterm.");
-                return -1;
-            }
+            // Redtracking  MUST INIT AFTER VIDEO STREAM
+            init_redtracking();
         }
-
         if (DISPLAY_WITH_MPLAYER)
         {
             videoOut = fopen("./video_fifo.h264", "w");
@@ -259,7 +263,6 @@ int main (int argc, char *argv[])
             ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
         }
     }
-
     // send the command that tells to the Bebop to begin its streaming
     if (!failed)
     {
@@ -272,8 +275,6 @@ int main (int argc, char *argv[])
         }
     }
 
-    // Redtracking  MUST INIT AFTER VIDEO STREAM
-    init_redtracking();
 
     if (!failed)
     {

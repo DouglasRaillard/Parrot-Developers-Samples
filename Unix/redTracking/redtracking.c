@@ -9,7 +9,6 @@ using namespace std;
 
 enum EnableTracking{OBJECT_DETECTED,OBJECT_NOT_DETECTED};
 
-VideoCapture cap; //capture the video from web cam
 
 int iLowH = 0;
 int iHighH = 179;
@@ -49,15 +48,6 @@ extern "C" {
 #endif
 
 int init_redtracking() {
-    cap = VideoCapture("./video_fifo.h264");
-    cap.set(CV_CAP_PROP_FOURCC, CV_FOURCC('H', '2', '6', '4'));
-
-    if ( !cap.isOpened() )  // if not success, exit program
-    {
-        cout << "Cannot open the H.264 stream from named pipe" << endl;
-        exit(-1);
-    }
-
     namedWindow("Autopilote Target Setter", CV_WINDOW_AUTOSIZE); //create a window called "Control"
 
 
@@ -74,7 +64,7 @@ int init_redtracking() {
     //cvCreateButton("toogle tracking",callbackButton(trackingStatus),NULL,CV_PUSH_BUTTON,1);
 
     // Display the window
-    waitKey(0);
+    //waitKey(0);
 
     pthread_mutex_init(&measured_data_lock, NULL);
 
@@ -88,6 +78,16 @@ int init_redtracking() {
 
 
 void *redtracking_thread_loop(void* data) {
+    //cap.set(CV_CAP_PROP_FOURCC, CV_FOURCC('M','J','P','G'));
+
+    VideoCapture cap = VideoCapture("./video_fifo.h264");
+    cap.set(CV_CAP_PROP_FOURCC, CV_FOURCC('H', '2', '6', '4'));
+
+    if ( !cap.isOpened() )  // if not success, exit program
+    {
+        cout << "Cannot open the H.264 stream from named pipe" << endl;
+        exit(-1);
+    }
 
     Mat imgOriginal;
 
