@@ -39,6 +39,7 @@
  *             include file :
  *
  *****************************************/
+#include "redtracking.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,7 +57,6 @@ extern "C" {
 
 #include "BebopPiloting.h"
 #include "ihm.h"
-#include "redtracking.h"
 
 
 /*****************************************
