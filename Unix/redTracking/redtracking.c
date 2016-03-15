@@ -114,11 +114,14 @@ void *redtracking_thread_loop(void* data) {
     }
 
     // Flush the named pipe
-    FILE *fp = fopen("./video_fifo.h264", "r");
+    FILE *fp = fopen("./video_fifo.h264", "rb");
     fseek(fp, 0, SEEK_END);
     size_t fsize = ftell(fp);
     rewind(fp);
-    fread(0, 1, fsize, fp);
+    char temp[4096];
+    for(size_t i=0; i<(fsize/sizeof(temp)); i++){
+        fread(&temp, 1, sizeof(temp), fp);
+    }
     fclose(fp);
 
 
