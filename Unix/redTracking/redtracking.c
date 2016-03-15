@@ -3,6 +3,9 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <pthread.h>
 #include <cstdio>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "redtracking.h"
 
 using namespace cv;
@@ -114,15 +117,13 @@ void *redtracking_thread_loop(void* data) {
     }
 
     // Flush the named pipe
-    FILE *fp = fopen("./video_fifo.h264", "rb");
-    fseek(fp, 0, SEEK_END);
-    size_t fsize = ftell(fp);
-    rewind(fp);
+    pthread_spin_lock(&video_frame_lock);
+    int fd = open("./video_fifo.h264", O_RDONLY|O_NONBLOCK);
     char temp[4096];
-    for(size_t i=0; i<(fsize/sizeof(temp)); i++){
-        fread(&temp, 1, sizeof(temp), fp);
-    }
-    fclose(fp);
+    while(!(read(fd, &temp, sizeof(temp)) <= 0 && errno == EAGAIN)){};
+    close(fd);
+    pthread_spin_unlock(&video_frame_lock);
+
 
 
     Mat imgOriginal;
