@@ -45,6 +45,7 @@ void batteryStateChanged (uint8_t percent);
 void attitudeStateChanged (float roll, float pitch, float yaw);
 void speedStateChanged (float roll, float pitch, float yaw);
 void positionStateChanged (double latitude, double longitude, double altitude);
+void altitudeStateChanged (double altitude);
 void commandChanged (int event);
 
 // called when a streaming frame has been received

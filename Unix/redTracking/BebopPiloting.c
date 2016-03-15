@@ -261,6 +261,7 @@ int main (int argc, char *argv[])
             ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
         }
     }
+
     // send the command that tells to the Bebop to begin its streaming
     if (!failed)
     {
@@ -494,6 +495,24 @@ void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICT
             positionStateChanged(latitude, longitude, altitude);
         }
     }
+
+    //if Altitude has changed
+    if ((commandKey == ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ALTITUDECHANGED) && (elementDictionary != NULL))
+    {
+        ARCONTROLLER_DICTIONARY_ARG_t *arg = NULL;
+        ARCONTROLLER_DICTIONARY_ELEMENT_t *element = NULL;
+        HASH_FIND_STR (elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, element);
+        if (element != NULL)
+        {
+        	double altitude = 0;
+            HASH_FIND_STR (element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ALTITUDECHANGED_ALTITUDE, arg);
+            if (arg != NULL)
+            {
+                altitude = arg->value.Double;
+                altitudeStateChanged(altitude);
+            }
+        }
+    }
 }
 
 void batteryStateChanged (uint8_t percent)
@@ -526,7 +545,15 @@ void positionStateChanged (double latitude, double longitude, double altitude)
     if (ihm != NULL)
     {
         IHM_PrintPosition (ihm, latitude, longitude, altitude);
-    }
+    } 
+}
+
+void altitudeStateChanged (double altitude)
+{
+    if (ihm != NULL)
+    {   
+        IHM_PrintAltitude (ihm, altitude);
+    } 
 }
 
 void commandChanged (int event)

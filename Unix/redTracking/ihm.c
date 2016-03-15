@@ -81,15 +81,27 @@ extern "C" {
 #define SPEEDZ_X 0
 #define SPEEDZ_Y 12
 
-#define LATITUDE_X 0
-#define LATITUDE_Y 14
-#define LONGITUDE_X 0
-#define LONGITUDE_Y 15
-#define ALTITUDE_X 0
-#define ALTITUDE_Y 16
+#define GPS_LATITUDE_X 0
+#define GPS_LATITUDE_Y 14
+#define GPS_LONGITUDE_X 0
+#define GPS_LONGITUDE_Y 15
+#define GPS_ALTITUDE_X 0
+#define GPS_ALTITUDE_Y 16
 
 #define COMMAND_X 0
 #define COMMAND_Y 18
+
+#define ALTITUDE_X 0
+#define ALTITUDE_Y 20
+
+/*****************************************
+ *
+ *       treshold following flight:
+ *
+ ****************************************/
+#define thresholdRight 50
+#define thresholdLeft 100
+#define errorValue -1000
 
 /*****************************************
  *
@@ -202,8 +214,12 @@ void *IHM_InputProcessing(void *data)
     IHM_t *ihm = (IHM_t *) data;
     int key = 0;
 
-    struct timeval currentTime, beginAutomationTime;
+    struct timeval beginAutomationTime;
     bool automationActive = false;
+    
+    bool followingActive = false;
+    COMMAND_STATE state = STATE_NONE;
+    int temp = 0;
 
     if (ihm != NULL)
     {
@@ -216,6 +232,7 @@ void *IHM_InputProcessing(void *data)
                 if(ihm->onInputEventCallback != NULL)
                 {
                     automationActive = false;
+                    followingActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_EXIT, ihm->customData);
                 }
             }
@@ -224,6 +241,7 @@ void *IHM_InputProcessing(void *data)
                 if(ihm->onInputEventCallback != NULL)
                 {
                     automationActive = false;
+                    followingActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_UP, ihm->customData);
                 }
             }
@@ -232,6 +250,7 @@ void *IHM_InputProcessing(void *data)
                 if(ihm->onInputEventCallback != NULL)
                 {
                     automationActive = false;
+                    followingActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_DOWN, ihm->customData);
                 }
             }
@@ -240,6 +259,7 @@ void *IHM_InputProcessing(void *data)
                 if(ihm->onInputEventCallback != NULL)
                 {
                     automationActive = false;
+                    followingActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
                 }
             }
@@ -248,6 +268,7 @@ void *IHM_InputProcessing(void *data)
                 if(ihm->onInputEventCallback != NULL)
                 {
                     automationActive = false;
+                    followingActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                 }
             }
@@ -256,6 +277,7 @@ void *IHM_InputProcessing(void *data)
                 if(ihm->onInputEventCallback != NULL)
                 {
                     automationActive = false;
+                    followingActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_EMERGENCY, ihm->customData);
                 }
             }
@@ -264,6 +286,7 @@ void *IHM_InputProcessing(void *data)
                 if(ihm->onInputEventCallback != NULL)
                 {
                     automationActive = false;
+                    followingActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_TAKEOFF, ihm->customData);
                 }
             }
@@ -272,6 +295,7 @@ void *IHM_InputProcessing(void *data)
                 if(ihm->onInputEventCallback != NULL)
                 {
                     automationActive = false;
+                    followingActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_LAND, ihm->customData);
                 }
             }
@@ -280,6 +304,7 @@ void *IHM_InputProcessing(void *data)
                 if(ihm->onInputEventCallback != NULL)
                 {
                     automationActive = false;
+                    followingActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
                 }
             }
@@ -288,6 +313,7 @@ void *IHM_InputProcessing(void *data)
                 if(ihm->onInputEventCallback != NULL)
                 {
                     automationActive = false;
+                    followingActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_BACK, ihm->customData);
                 }
             }
@@ -296,6 +322,7 @@ void *IHM_InputProcessing(void *data)
                 if(ihm->onInputEventCallback != NULL)
                 {
                     automationActive = false;
+                    followingActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_ROLL_LEFT, ihm->customData);
                 }
             }
@@ -304,6 +331,7 @@ void *IHM_InputProcessing(void *data)
                 if(ihm->onInputEventCallback != NULL)
                 {
                     automationActive = false;
+                    followingActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_ROLL_RIGHT, ihm->customData);
                 }
             }
@@ -313,7 +341,19 @@ void *IHM_InputProcessing(void *data)
                 {
                     gettimeofday(&beginAutomationTime, NULL);
                     automationActive = true;
+                    followingActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_TAKEOFF, ihm->customData);
+                }
+            }
+            else if(key == 'i')
+            {
+                if(ihm->onInputEventCallback != NULL)
+                {
+                    followingActive = true;
+                    automationActive = false;
+                    ihm->onInputEventCallback (IHM_INPUT_EVENT_TAKEOFF, ihm->customData);
+                    state = STATE_STAB;
+                    temp = 0;
                 }
             }
             else
@@ -322,26 +362,14 @@ void *IHM_InputProcessing(void *data)
                 {
                     if (automationActive == true)
                     {
-                        gettimeofday(&currentTime, NULL);
-                        if(((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) < 2000)
-                        {
-                            ihm->onInputEventCallback (IHM_INPUT_EVENT_UP, ihm->customData);
-                        }
-                        if((((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) >= 2000)
-                            && (((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) < 4000))
-                        {
-                            ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
-                        }
-                        if((((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) >= 4000)
-                            && (((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) < 5000))
-                        {
-                            ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
-                        }
-                        if(((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginAutomationTime.tv_sec*1000 + beginAutomationTime.tv_usec/1000)) >= 5000)
-                        {
-                            ihm->onInputEventCallback (IHM_INPUT_EVENT_LAND, ihm->customData);
-                            automationActive = false;
-                        }
+                        followingActive = false;
+                        AutonomousNavigation(ihm, beginAutomationTime, &automationActive);
+                    }
+                    else if (followingActive == true)
+                    {
+                        automationActive = false;
+                        FollowingNavigation(ihm, &followingActive, &state, temp);
+                        temp++;
                     }
                     else
                     {
@@ -355,6 +383,107 @@ void *IHM_InputProcessing(void *data)
     }
 
     return NULL;
+}
+
+void AutonomousNavigation(IHM_t *ihm, struct timeval beginTime, bool *automationActive)
+{
+    if(automationActive)
+    {
+        struct timeval currentTime;
+
+        gettimeofday(&currentTime, NULL);
+        if(((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginTime.tv_sec*1000 + beginTime.tv_usec/1000)) < 2000)
+        {
+            ihm->onInputEventCallback (IHM_INPUT_EVENT_UP, ihm->customData);
+        }
+        if((((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginTime.tv_sec*1000 + beginTime.tv_usec/1000)) >= 2000)
+            && (((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginTime.tv_sec*1000 + beginTime.tv_usec/1000)) < 4000))
+        {
+            ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
+        }
+        if((((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginTime.tv_sec*1000 + beginTime.tv_usec/1000)) >= 4000)
+            && (((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginTime.tv_sec*1000 + beginTime.tv_usec/1000)) < 5000))
+        {
+            ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
+        }
+        if(((currentTime.tv_sec*1000 + currentTime.tv_usec/1000) - (beginTime.tv_sec*1000 + beginTime.tv_usec/1000)) >= 5000)
+        {
+            ihm->onInputEventCallback (IHM_INPUT_EVENT_LAND, ihm->customData);
+            *automationActive = false;
+        }
+    }
+    
+}
+
+//Debug function
+void GetObjectCoordonnees(double *X1, double *Y1, double *X2, double *Y2, double *X3, double *Y3)
+{
+    *X1 = 40;
+    *Y1 = 0;
+}
+
+void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state, int temp)
+{
+    if(*followingActive)
+    {
+        double X1, Y1, X2, Y2, X3, Y3;
+        switch(*state)
+        {
+            case STATE_NONE:
+                ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
+                break;
+
+            case STATE_STAB:
+                ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
+                if(temp > 100)
+                    *state = STATE_SEARCH;
+                break;
+
+            case STATE_INITIAL_SEARCH:
+                GetObjectCoordonnees(&X1, &Y1, &X2, &Y2, &X3, &Y3);
+                if(X1 != errorValue && Y1 != errorValue)
+                    if(X1 < thresholdLeft)
+                        ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
+                    else if(X1 > thresholdRight)
+                        ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
+                    else
+                        *state = STATE_FOLLOW;
+                else
+                    ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
+                break;
+
+            case STATE_FOLLOW:
+                ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
+                *state = STATE_SEARCH;
+                break;
+
+            case STATE_SEARCH:
+                GetObjectCoordonnees(&X1, &Y1, &X2, &Y2, &X3, &Y3);
+                if(X1 != errorValue && Y1 != errorValue)
+                    if(X1 < thresholdLeft)
+                        ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
+                    else if(X1 > thresholdRight)
+                        ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
+                    else
+                        *state = STATE_FOLLOW;
+                else
+                    *state = STATE_LANDING;
+                break;
+
+            case STATE_LANDING:
+                ihm->onInputEventCallback (IHM_INPUT_EVENT_LAND, ihm->customData);
+                *state = STATE_NONE;
+                *followingActive = false;
+                break;
+
+            default:
+                *state = STATE_NONE;
+                ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
+                *followingActive = false;
+                break;
+        }
+
+    }
 }
 
 void IHM_PrintHeader(IHM_t *ihm, char *headerStr)
@@ -427,14 +556,24 @@ void IHM_PrintPosition(IHM_t *ihm, double latitude, double longitude, double alt
 {
     if (ihm != NULL)
     {
-        move(LATITUDE_Y, 0);     // move to begining of line
+        move(GPS_LATITUDE_Y, 0);     // move to begining of line
         clrtoeol();              // clear line
-        mvprintw(LATITUDE_Y, LATITUDE_X, "Latitude: %d", latitude);
+        mvprintw(GPS_LATITUDE_Y, GPS_LATITUDE_X, "GPS Latitude: %d", latitude);
 
-        move(LONGITUDE_Y, 0);     // move to begining of line
+        move(GPS_LONGITUDE_Y, 0);     // move to begining of line
         clrtoeol();              // clear line
-        mvprintw(LONGITUDE_Y, LONGITUDE_X, "Longitude: %d", longitude);
+        mvprintw(GPS_LONGITUDE_Y, GPS_LONGITUDE_X, "GPS Longitude: %d", longitude);
 
+        move(GPS_ALTITUDE_Y, 0);     // move to begining of line
+        clrtoeol();              // clear line
+        mvprintw(GPS_ALTITUDE_Y, GPS_ALTITUDE_X, "GPS Altitude: %d", altitude);
+    }
+}
+
+void IHM_PrintAltitude(IHM_t *ihm, double altitude)
+{
+    if (ihm != NULL)
+    {
         move(ALTITUDE_Y, 0);     // move to begining of line
         clrtoeol();              // clear line
         mvprintw(ALTITUDE_Y, ALTITUDE_X, "Altitude: %d", altitude);
@@ -449,6 +588,15 @@ void IHM_PrintCommand(IHM_t *ihm, int event)
         clrtoeol();             // clear line
         switch (event)
         {
+            case 0:
+                mvprintw(COMMAND_Y, COMMAND_X, "Command: NONE");
+                break;
+            case 1:
+                mvprintw(COMMAND_Y, COMMAND_X, "Command: EXIT");
+                break;
+            case 2:
+                mvprintw(COMMAND_Y, COMMAND_X, "Command: EMERGENCY");
+                break;
             case 3:
                 mvprintw(COMMAND_Y, COMMAND_X, "Command: TAKEOFF");
                 break;
@@ -458,8 +606,26 @@ void IHM_PrintCommand(IHM_t *ihm, int event)
             case 5:
                 mvprintw(COMMAND_Y, COMMAND_X, "Command: UP");
                 break;
+            case 6:
+                mvprintw(COMMAND_Y, COMMAND_X, "Command: DOWN");
+                break;
+            case 7:
+                mvprintw(COMMAND_Y, COMMAND_X, "Command: RIGHT");
+                break;
+            case 8:
+                mvprintw(COMMAND_Y, COMMAND_X, "Command: LEFT");
+                break;
             case 9:
                 mvprintw(COMMAND_Y, COMMAND_X, "Command: FORWARD");
+                break;
+            case 10:
+                mvprintw(COMMAND_Y, COMMAND_X, "Command: BACK");
+                break;
+            case 11:
+                mvprintw(COMMAND_Y, COMMAND_X, "Command: ROLL_LEFT");
+                break;
+            case 12:
+                mvprintw(COMMAND_Y, COMMAND_X, "Command: ROLL_RIGHT");
                 break;
             default:
                 mvprintw(COMMAND_Y, COMMAND_X, "Command: ....");
