@@ -2,6 +2,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <pthread.h>
+#include <cstdio>
 #include "redtracking.h"
 
 using namespace cv;
@@ -107,18 +108,25 @@ void *redtracking_thread_loop(void* data) {
     VideoCapture cap = VideoCapture("./video_fifo.h264");
     cap.set(CV_CAP_PROP_FOURCC, CV_FOURCC('H', '2', '6', '4'));
 
-
     if ( !cap.isOpened() )  // if not success, exit program
     {
         cout << "Cannot open the H.264 stream from named pipe" << endl;
         exit(-1);
     }
 
+    // Flush the named pipe
+    FILE *fp = fopen("./video_fifo.h264", "r");
+    fseek(fp, 0, SEEK_END);
+    size_t fsize = ftell(fp);
+    rewind(fp);
+    fread(0, 1, fsize, fp);
+    fclose(fp);
+
+
     Mat imgOriginal;
 
     while(true) {
         bool bSuccess = cap.read(imgOriginal); // read a new frame from video
-
         if (!bSuccess) //if not success, break loop
         {
             cout << "Cannot read a frame from video stream" << endl;
