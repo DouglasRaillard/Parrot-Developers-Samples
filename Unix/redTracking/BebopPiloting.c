@@ -102,8 +102,6 @@ int isBebop2 = 0;
 
 int main (int argc, char *argv[])
 {
-     pthread_spin_init(&video_frame_lock, PTHREAD_PROCESS_PRIVATE);
-
     // local declarations
     int failed = 0;
     ARDISCOVERY_Device_t *device = NULL;
