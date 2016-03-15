@@ -9,9 +9,6 @@ extern "C" {
 // DRAGONS HERE: include all C headers insied extern "C"
 #include <libARSAL/ARSAL.h>
 
-// SHOULD BE CLEANED: this spinlock is from BebopPiloting.c
-// Spinlock used to stop the output of frames in the named pipe
-extern pthread_spinlock_t video_frame_lock;
 
 // Init OpenCV
 int init_redtracking();
