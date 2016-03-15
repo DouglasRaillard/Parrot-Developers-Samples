@@ -431,7 +431,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 *temp++;
                 if(*temp > 20)
                 {
-                    *state = STATE_SEARCH;
+                    *state = STATE_INITIAL_SEARCH;
                     *temp = 0;
                 }
                 break;
