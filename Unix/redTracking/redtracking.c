@@ -19,28 +19,59 @@ static int iHighS = 255;
 static int iLowV = 0;
 static int iHighV = 255;
 
+static int tracking = 0;
+static int nbTargets = 1;
+
 static EnableTracking trackingStatus = OBJECT_NOT_DETECTED;
 static std::vector<cv::Vec4i> hierarchy;
 static std::vector<std::vector<cv::Point> > contours;
 static std::vector<std::vector<cv::Point> > contours_poly;
 static std::vector<cv::Rect> targetZone;
+static std::vector<cv::Rect> target;
+static std::vector<cv::Point> centers;
 
 static ARSAL_Thread_t redtracking_thread = NULL;
 static MEASURED_DATA_T measured_data_buffer;
 static pthread_mutex_t measured_data_lock;
 
 
-void callbackButton(EnableTracking &trackingStatus)
+bool compare_rect(const Rect &a, const Rect &b)
 {
-    if(trackingStatus == OBJECT_DETECTED)
+    return a.area() < b.area();
+}
+
+void defineTarget(std::vector<cv::Rect> potentialTargets, std::vector<cv::Rect> &target, int nbTargets)
+{
+
+    std::sort(potentialTargets.begin(), potentialTargets.end(), compare_rect);
+
+    if(nbTargets >= potentialTargets.size())
     {
-        trackingStatus = OBJECT_NOT_DETECTED;
+        nbTargets = potentialTargets.size()-1;
     }
-    else
+
+    target.clear();
+
+    for(std::vector<cv::Rect>::iterator it = potentialTargets.end()-nbTargets; it != potentialTargets.end(); it++)
     {
-        trackingStatus = OBJECT_DETECTED;
+        target.push_back(*it);
     }
 }
+
+void defineCenter(std::vector<cv::Rect> target, std::vector<cv::Point> &centers)
+{
+    cv::Point currentPoint;
+    centers.clear();
+
+    for(std::vector<cv::Rect>::iterator it = target.begin(); it != target.end(); it++)
+    {
+        currentPoint.x = (*it).x + (*it).width/2;
+        currentPoint.y = (*it).y + (*it).height/2;
+
+        centers.push_back(currentPoint);
+    }
+}
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,7 +98,8 @@ void *redtracking_thread_loop(void* data) {
     cvCreateTrackbar("LowV", "Autopilote Target Setter", &iLowV, 255); //Value (0 - 255)
     cvCreateTrackbar("HighV", "Autopilote Target Setter", &iHighV, 255);
 
-    //cvCreateButton("toogle tracking",callbackButton(trackingStatus),NULL,CV_PUSH_BUTTON,1);
+    cvCreateTrackbar("nbTrackedOjects", "Autopilote Target Setter", &nbTargets, 50); //tracking (0 - 1)
+    cvCreateTrackbar("Tracking", "Autopilote Target Setter", &tracking, 1); //tracking (0 - 1)
 
     // Display the window
     //waitKey(1);
@@ -109,6 +141,15 @@ void *redtracking_thread_loop(void* data) {
         dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
         erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
 
+        if(tracking)
+        {
+            trackingStatus = OBJECT_DETECTED;
+        }
+        else
+        {
+            trackingStatus = OBJECT_NOT_DETECTED;
+        }
+
         if(trackingStatus == OBJECT_DETECTED)
         {
             dilate( imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
@@ -124,14 +165,30 @@ void *redtracking_thread_loop(void* data) {
             {
                 cv::approxPolyDP(cv::Mat(contours[j]), contours_poly[j], 3, true);
                 targetZone[j] = cv::boundingRect(cv::Mat(contours_poly[j]));
-                cv::rectangle(imgOriginal, targetZone[j], cv::Scalar( 0, 0, 255), 2, 8, 0 );
+            }
+
+            defineTarget(targetZone, target, nbTargets);
+            defineCenter(target, centers);
+
+            if(contours.size() != 0)
+            {
+                for(size_t i=0; i<target.size(); i++)
+                {
+                    //cv::rectangle(imgOriginal, target[i], cv::Scalar( 0, 0, 255), 2, 8, 0 );
+                    cv::circle(imgOriginal, centers[i], 1, cv::Scalar(0,255,0), 7, 24);
+                    cv::putText(imgOriginal, "X: "+std::to_string(centers[i].x)+" Y: "+std::to_string(centers[i].y), centers[i], cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(0,255,0), 2.0);
+                }
             }
         }
 
         imshow("Thresholded Image", imgThresholded);
         imshow("Original", imgOriginal); //show the original image
 
-        waitKey(25);
+        if(waitKey(25) == 27)
+        {
+            cout << "esc key is pressed by user" << endl;
+            exit(0);
+        }
     }
     return 0;
 }
