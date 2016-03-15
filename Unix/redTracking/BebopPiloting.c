@@ -545,15 +545,15 @@ void positionStateChanged (double latitude, double longitude, double altitude)
     if (ihm != NULL)
     {
         IHM_PrintPosition (ihm, latitude, longitude, altitude);
-    } 
+    }
 }
 
 void altitudeStateChanged (double altitude)
 {
     if (ihm != NULL)
-    {   
+    {
         IHM_PrintAltitude (ihm, altitude);
-    } 
+    }
 }
 
 void commandChanged (int event)
