@@ -15,15 +15,26 @@ import textwrap
 state_regex = re.compile('.*STATE_(\w+).*')
 state_decl_regex = re.compile('.*case.*');
 inline_comment_regex = re.compile('.*?//(.*)');
+graphviz_comment_regex = re.compile('.*?//STATE_DIAGRAM:(.*)');
+
 
 origin_state = None
 state_dict = collections.defaultdict(list)
 state_set = set()
 
 with open(sys.argv[1]) as ihm_file:
+    graph_custom_commands = ""
+
     for line in ihm_file:
         match = state_regex.match(line)
         line = line.strip()
+
+        graphviz_comment_match = graphviz_comment_regex.match(line)
+        if graphviz_comment_match:
+            graph_custom_commands += graphviz_comment_match.group(1)+'\n'
+            continue
+
+
         if line == 'default:':
             origin_state = "Default"
 
@@ -51,7 +62,9 @@ with open(sys.argv[1]) as ihm_file:
     for state, child_list in state_dict.items():
         for child in child_list:
             graph += state+" -> "+child[0]+' [label="'+child[1]+'"];\n'
-    graph += "}"
+
+    graph += '\n'+graph_custom_commands
+    graph += "\n}"
     print(graph)
     #for
 

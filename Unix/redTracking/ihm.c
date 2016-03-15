@@ -367,6 +367,8 @@ void *IHM_InputProcessing(void *data)
                     followingActive = true;
                     automationActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_TAKEOFF, ihm->customData);
+                    //STATE_DIAGRAM:WAITING_KEY;
+                    //STATE_DIAGRAM:WAITING_KEY -> STAB [label="When i key is pressed in IHM"];
                     state = STATE_STAB;
                     temp = 0;
                 }
@@ -539,7 +541,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 break;
 
             default:
-                *state = STATE_NONE; //bip
+                *state = STATE_NONE;
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
                 *followingActive = false;
                 break;
