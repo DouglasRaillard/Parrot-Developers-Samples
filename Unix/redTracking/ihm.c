@@ -101,8 +101,11 @@ extern "C" {
  *       treshold following flight:
  *
  ****************************************/
-#define thresholdRight 380
-#define thresholdLeft 260
+#define thresholdRight 350
+#define thresholdLeft 250
+
+#define DATA_X 0
+#define DATA_Y 19
 
 /*****************************************
  *
@@ -420,6 +423,12 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
     if(*followingActive)
     {
         struct MEASURED_DATA_T trackPoints;
+
+        //Print state
+        move(DATA_Y, 0);     // move to begining of line
+        clrtoeol();          // clear line
+        mvprintw(DATA_Y, DATA_X, "State: %i", state);
+
         switch(*state)
         {
             case STATE_NONE:
