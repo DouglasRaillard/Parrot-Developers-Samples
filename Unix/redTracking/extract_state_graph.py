@@ -66,8 +66,3 @@ with open(sys.argv[1]) as ihm_file:
     graph += '\n'+graph_custom_commands
     graph += "\n}"
     print(graph)
-    #for
-
-    #print(match)
-    #print(state_dict)
-    #print(line)
