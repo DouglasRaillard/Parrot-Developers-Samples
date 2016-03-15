@@ -369,8 +369,7 @@ void *IHM_InputProcessing(void *data)
                     else if (followingActive == true)
                     {
                         automationActive = false;
-                        FollowingNavigation(ihm, &followingActive, &state, temp);
-                        temp++;
+                        FollowingNavigation(ihm, &followingActive, &state, &temp);
                     }
                     else
                     {
@@ -416,7 +415,7 @@ void AutonomousNavigation(IHM_t *ihm, struct timeval beginTime, bool *automation
     
 }
 
-void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state, int temp)
+void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state, int *temp)
 {
     if(*followingActive)
     {
@@ -429,19 +428,25 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
 
             case STATE_STAB:
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
-                if(temp > 100)
+                *temp++;
+                if(*temp > 20)
+                {
                     *state = STATE_SEARCH;
+                    *temp = 0;
+                }
                 break;
 
             case STATE_INITIAL_SEARCH:
                 trackPoints = redtracking_get_measured_data();
                 if(trackPoints.centers.size() != 0)
-                    if(trackPoints.centers[0].first < thresholdLeft)
+                {
+                	if(trackPoints.centers[0].first < thresholdLeft)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
                     else if(trackPoints.centers[0].first > thresholdRight)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                     else
                         *state = STATE_FOLLOW;
+                }
                 else
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                 break;
@@ -454,14 +459,26 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
             case STATE_SEARCH:
                 trackPoints = redtracking_get_measured_data();
                 if(trackPoints.centers.size() != 0)
-                    if(trackPoints.centers[0].first < thresholdLeft)
+                {
+                	*temp = 0; //Variable de test de multiples ratés
+
+                	if(trackPoints.centers[0].first < thresholdLeft)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
                     else if(trackPoints.centers[0].first > thresholdRight)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                     else
                         *state = STATE_FOLLOW;
+                }
                 else
-                    *state = STATE_LANDING;
+                {
+                	ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
+                	*temp++;
+
+                	/*if(*temp == 100)
+                	{
+                		 *state = STATE_LANDING;
+                	}*/
+                }
                 break;
 
             case STATE_LANDING:

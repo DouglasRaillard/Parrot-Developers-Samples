@@ -80,7 +80,7 @@ void IHM_setCustomData(IHM_t *ihm, void *customData);
 
 void AutonomousNavigation(IHM_t *ihm, struct timeval beginTime, bool *automationActive);
 
-void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state, int temp);
+void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state, int *temp);
 
 void IHM_PrintHeader(IHM_t *ihm, char *headerStr);
 void IHM_PrintInfo(IHM_t *ihm, char *infoStr);
