@@ -1,12 +1,12 @@
 #ifndef REDTRACKING_H_
 #define REDTRACKING_H_
+#include "MeasuredData.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // DRAGONS HERE: include all C headers insied extern "C"
-#include "MeasuredData.h"
 #include <libARSAL/ARSAL.h>
 
 
