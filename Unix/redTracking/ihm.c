@@ -451,7 +451,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 (*temp)++;
                 if(*temp > 20)
                 {
-                    *state = STATE_INITIAL_SEARCH;
+                    *state = STATE_INITIAL_SEARCH; //Start the initial target scan after 20 cycle
                     *temp = 0;
                 }
                 break;
@@ -469,7 +469,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                     }
                     else
                     {
-                        *state = STATE_SEARCH;
+                        *state = STATE_SEARCH; // Start search (tracking controller) if the target is approximately in front of the drone
                         *temp = 0;
                     }
                 }
@@ -484,7 +484,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 // Search the target once in a while, or do it if absolutely necessary (target really not in the front)
                 if (*temp > 10 || trackPoints.centers[0].first < thresholdLeft || trackPoints.centers[0].first > thresholdRight)
                 {
-                    *state = STATE_SEARCH;
+                    *state = STATE_SEARCH; // Reenable tracking after 10 cycles or if the target is really not in front of the drone
                     *temp = 0;
                 }
                 break;
@@ -496,7 +496,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                     // PI controller
                     // If approximately correctly oriented, goes straight
                     if(trackPoints.centers[0].first < proportionalThresholdLeft && trackPoints.centers[0].first > proportionalThresholdRight){
-                        *state = STATE_FOLLOW;
+                        *state = STATE_FOLLOW; // If the target is right ahead, go straight to it without the proportionnal controller
                         *temp = 0;
                     }
                     // If too much deviation, use the proportionnal corrector at a slower linear speed
@@ -515,7 +515,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                     else
                     {
-                        *state = STATE_FOLLOW;
+                        // *state = STATE_FOLLOW;
                         *temp = 0;
                     }
                     */
@@ -524,22 +524,22 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 {
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
                     (*temp)++;
-
+                     *state = STATE_SEARCH; // If no target is found, keep searching for it
                     /*if(*temp == 100)
                     {
-                            *state = STATE_LANDING;
+                            //*state = STATE_LANDING;
                     }*/
                 }
                 break;
 
             case STATE_LANDING:
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_LAND, ihm->customData);
-                *state = STATE_NONE;
+                *state = STATE_NONE; // Drone has landed, waiting for orders
                 *followingActive = false;
                 break;
 
             default:
-                *state = STATE_NONE;
+                *state = STATE_NONE; //bip
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
                 *followingActive = false;
                 break;

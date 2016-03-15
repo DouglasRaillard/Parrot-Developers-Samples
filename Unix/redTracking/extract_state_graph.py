@@ -2,6 +2,7 @@
 import sys
 import re
 import collections
+import textwrap
 
 #To generate the .dot file:
     #$ ./extract_state_graph.py ihm.c > graph.dot
@@ -13,6 +14,7 @@ import collections
 
 state_regex = re.compile('.*STATE_(\w+).*')
 state_decl_regex = re.compile('.*case.*');
+inline_comment_regex = re.compile('.*?//(.*)');
 
 origin_state = None
 state_dict = collections.defaultdict(list)
@@ -21,8 +23,12 @@ state_set = set()
 with open(sys.argv[1]) as ihm_file:
     for line in ihm_file:
         match = state_regex.match(line)
-        if match:
-            current_state = match.group(1)
+        line = line.strip()
+        if line == 'default:':
+            origin_state = "Default"
+
+        if match and not line.startswith('//'):
+            current_state = match.group(1).strip()
             state_set.add(current_state)
 
             if state_decl_regex.match(line):
@@ -30,14 +36,21 @@ with open(sys.argv[1]) as ihm_file:
             else:
                 if origin_state is None:
                     continue
-                if not current_state in state_dict[origin_state]:
-                    state_dict[origin_state].append(current_state)
+
+                comment = ""
+                comment_match = inline_comment_regex.match(line)
+                if comment_match:
+                    comment = comment_match.group(1).strip()
+                comment = textwrap.fill(comment, 30);
+
+                #if not current_state in state_dict[origin_state]:
+                state_dict[origin_state].append((current_state,comment))
 
     graph = "digraph finite_state_machine {\n"
     graph += " ".join(state_set)+";\n"
     for state, child_list in state_dict.items():
         for child in child_list:
-            graph += state+" -> "+child+" [label="+'""'+"];\n"
+            graph += state+" -> "+child[0]+' [label="'+child[1]+'"];\n'
     graph += "}"
     print(graph)
     #for
