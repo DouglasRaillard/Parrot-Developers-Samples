@@ -51,6 +51,7 @@ extern "C" {
 #include <libARSAL/ARSAL.h>
 
 #include "ihm.h"
+#include "MeasuredData.h"
 
 /*****************************************
  *
@@ -415,18 +416,11 @@ void AutonomousNavigation(IHM_t *ihm, struct timeval beginTime, bool *automation
     
 }
 
-//Debug function
-void GetObjectCoordonnees(double *X1, double *Y1, double *X2, double *Y2, double *X3, double *Y3)
-{
-    *X1 = 40;
-    *Y1 = 0;
-}
-
 void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state, int temp)
 {
     if(*followingActive)
     {
-        double X1, Y1, X2, Y2, X3, Y3;
+        struct MEASURED_DATA_T trackPoints;
         switch(*state)
         {
             case STATE_NONE:
@@ -440,11 +434,11 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 break;
 
             case STATE_INITIAL_SEARCH:
-                GetObjectCoordonnees(&X1, &Y1, &X2, &Y2, &X3, &Y3);
-                if(X1 != errorValue && Y1 != errorValue)
-                    if(X1 < thresholdLeft)
+                trackPoints = redtracking_get_measured_data();
+                if(trackPoints.x1 != errorValue && trackPoints.y1 != errorValue)
+                    if(trackPoints.x1 < thresholdLeft)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
-                    else if(X1 > thresholdRight)
+                    else if(trackPoints.x1 > thresholdRight)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                     else
                         *state = STATE_FOLLOW;
@@ -458,11 +452,11 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 break;
 
             case STATE_SEARCH:
-                GetObjectCoordonnees(&X1, &Y1, &X2, &Y2, &X3, &Y3);
-                if(X1 != errorValue && Y1 != errorValue)
-                    if(X1 < thresholdLeft)
+                trackPoints = redtracking_get_measured_data();
+                if(trackPoints.x1 != errorValue && trackPoints.y1 != errorValue)
+                    if(trackPoints.x1 < thresholdLeft)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
-                    else if(X1 > thresholdRight)
+                    else if(trackPoints.x1 > thresholdRight)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                     else
                         *state = STATE_FOLLOW;
