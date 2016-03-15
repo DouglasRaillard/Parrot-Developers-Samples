@@ -39,7 +39,7 @@
  *             include file :
  *
  *****************************************/
- #include "MeasuredData.h"  
+ #include "MeasuredData.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -220,7 +220,7 @@ void *IHM_InputProcessing(void *data)
 
     struct timeval beginAutomationTime;
     bool automationActive = false;
-    
+
     bool followingActive = false;
     COMMAND_STATE state = STATE_NONE;
     int temp = 0;
@@ -415,7 +415,7 @@ void AutonomousNavigation(IHM_t *ihm, struct timeval beginTime, bool *automation
             *automationActive = false;
         }
     }
-    
+
 }
 
 void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state, int *temp)
@@ -427,7 +427,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
         //Print state
         move(DATA_Y, 0);     // move to begining of line
         clrtoeol();          // clear line
-        mvprintw(DATA_Y, DATA_X, "State: %i", state);
+        mvprintw(DATA_Y, DATA_X, "State: %u", *state);
 
         switch(*state)
         {
