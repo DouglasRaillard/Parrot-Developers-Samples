@@ -51,7 +51,7 @@ void defineTarget(std::vector<cv::Rect> potentialTargets, std::vector<cv::Rect> 
     }
 
     target.clear();
-
+    nbTargets = nbTargets > 0 ? nbTargets : 0;
     for(std::vector<cv::Rect>::iterator it = potentialTargets.end()-nbTargets; it != potentialTargets.end(); it++)
     {
         target.push_back(*it);
