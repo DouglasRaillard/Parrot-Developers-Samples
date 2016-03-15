@@ -10,24 +10,24 @@ using namespace std;
 enum EnableTracking{OBJECT_DETECTED,OBJECT_NOT_DETECTED};
 
 
-int iLowH = 0;
-int iHighH = 179;
+static int iLowH = 0;
+static int iHighH = 179;
 
-int iLowS = 0;
-int iHighS = 255;
+static int iLowS = 0;
+static int iHighS = 255;
 
-int iLowV = 0;
-int iHighV = 255;
+static int iLowV = 0;
+static int iHighV = 255;
 
-EnableTracking trackingStatus = OBJECT_NOT_DETECTED;
-std::vector<cv::Vec4i> hierarchy;
-std::vector<std::vector<cv::Point> > contours;
-std::vector<std::vector<cv::Point> > contours_poly;
-std::vector<cv::Rect> targetZone;
+static EnableTracking trackingStatus = OBJECT_NOT_DETECTED;
+static std::vector<cv::Vec4i> hierarchy;
+static std::vector<std::vector<cv::Point> > contours;
+static std::vector<std::vector<cv::Point> > contours_poly;
+static std::vector<cv::Rect> targetZone;
 
-ARSAL_Thread_t redtracking_thread = NULL;
-MEASURED_DATA_T measured_data_buffer;
-pthread_mutex_t measured_data_lock;
+static ARSAL_Thread_t redtracking_thread = NULL;
+static MEASURED_DATA_T measured_data_buffer;
+static pthread_mutex_t measured_data_lock;
 
 
 void callbackButton(EnableTracking &trackingStatus)
@@ -47,8 +47,15 @@ extern "C" {
 #endif
 
 int init_redtracking() {
-    namedWindow("Autopilote Target Setter", CV_WINDOW_AUTOSIZE); //create a window called "Control"
+    pthread_mutex_init(&measured_data_lock, NULL);
 
+    // Create OpenCV thread
+    ARSAL_Thread_Create(&redtracking_thread, redtracking_thread_loop, NULL);
+}
+
+
+void *redtracking_thread_loop(void* data) {
+    namedWindow("Autopilote Target Setter", CV_WINDOW_AUTOSIZE); //create a window called "Control"
 
     //Create trackbars in "Autopilote Target Setter" window
     cvCreateTrackbar("LowH", "Autopilote Target Setter", &iLowH, 179); //Hue (0 - 179)
@@ -65,14 +72,6 @@ int init_redtracking() {
     // Display the window
     //waitKey(1);
 
-    pthread_mutex_init(&measured_data_lock, NULL);
-
-    // Create OpenCV thread
-    ARSAL_Thread_Create(&redtracking_thread, redtracking_thread_loop, NULL);
-}
-
-
-void *redtracking_thread_loop(void* data) {
     VideoCapture cap = VideoCapture("./video_fifo.h264");
     cap.set(CV_CAP_PROP_FOURCC, CV_FOURCC('H', '2', '6', '4'));
 
