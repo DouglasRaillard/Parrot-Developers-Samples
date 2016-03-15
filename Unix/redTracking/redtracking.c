@@ -45,9 +45,9 @@ void defineTarget(std::vector<cv::Rect> potentialTargets, std::vector<cv::Rect> 
 {
     target.clear();
     std::sort(potentialTargets.begin(), potentialTargets.end(), compare_rect);
-    for(std::vector<cv::Rect>::iterator it = potentialTargets.begin(); it != potentialTargets.end() && i<nbTargets; it++)
+    for(size_t i=0; i < potentialTargets.size() && i<nbTargets; i++)
     {
-        target.push_back(*it);
+        target.push_back(potentialTargets[i]);
     }
 }
 
