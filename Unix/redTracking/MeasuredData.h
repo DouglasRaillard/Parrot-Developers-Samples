@@ -1,14 +1,14 @@
 #ifndef MEASURED_DATA_H_
 #define MEASURED_DATA_H_
+
+#include <vector>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct MEASURED_DATA_T {
-    long x1; // A changer avec des vraies valeurs utiles a l'asserv
-    long y1;
-    long x2;
-    long y2;
+    std::vector<std::pair<double,double> > centers;
 } MEASURED_DATA_T;
 
 // Get data created by the OpenCV thread
