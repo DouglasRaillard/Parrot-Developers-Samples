@@ -454,7 +454,10 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                     else if(trackPoints.centers[0].first > thresholdRight)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                     else
+                    {
                         *state = STATE_FOLLOW;
+                        *temp = 0;
+                    }
                 }
                 else
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
@@ -462,7 +465,12 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
 
             case STATE_FOLLOW:
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
-                *state = STATE_SEARCH;
+                *temp++;
+                if (*temp > 10)
+                {
+                    *state = STATE_SEARCH;
+                    *temp = 0;
+                }
                 break;
 
             case STATE_SEARCH:
@@ -476,7 +484,10 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                     else if(trackPoints.centers[0].first > thresholdRight)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                     else
+                    {
                         *state = STATE_FOLLOW;
+                        *temp = 0;
+                    }
                 }
                 else
                 {

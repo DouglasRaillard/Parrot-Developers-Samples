@@ -11,13 +11,13 @@ using namespace std;
 enum EnableTracking{OBJECT_DETECTED,OBJECT_NOT_DETECTED};
 
 
-static int iLowH = 0;
-static int iHighH = 179;
+static int iLowH = 93;
+static int iHighH = 114;
 
-static int iLowS = 0;
+static int iLowS = 219;
 static int iHighS = 255;
 
-static int iLowV = 0;
+static int iLowV = 104;
 static int iHighV = 255;
 
 static int tracking = 0;
