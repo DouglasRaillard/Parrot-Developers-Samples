@@ -38,26 +38,16 @@ static pthread_mutex_t measured_data_lock;
 
 bool compare_rect(const Rect &a, const Rect &b)
 {
-    return a.area() < b.area();
+    return a.area() > b.area();
 }
 
 void defineTarget(std::vector<cv::Rect> potentialTargets, std::vector<cv::Rect> &target, int nbTargets)
 {
     target.clear();
-    if (potentialTargets.empty()) {
-        return;
-    }
-
     std::sort(potentialTargets.begin(), potentialTargets.end(), compare_rect);
-
-    if(nbTargets >= potentialTargets.size())
+    for(size_t i=0; i < potentialTargets.size() && i<nbTargets; i++)
     {
-        nbTargets = potentialTargets.size()-1;
-    }
-
-    for(std::vector<cv::Rect>::iterator it = potentialTargets.end()-nbTargets; it != potentialTargets.end(); it++)
-    {
-        target.push_back(*it);
+        target.push_back(potentialTargets[i]);
     }
 }
 
