@@ -19,15 +19,15 @@ int iHighS = 255;
 int iLowV = 0;
 int iHighV = 255;
 
-EnableTracking trackingStatus = OBJECT_NOT_DETECTED;
-std::vector<cv::Vec4i> hierarchy;
-std::vector<std::vector<cv::Point> > contours;
-std::vector<std::vector<cv::Point> > contours_poly;
-std::vector<cv::Rect> targetZone;
+static EnableTracking trackingStatus = OBJECT_NOT_DETECTED;
+static std::vector<cv::Vec4i> hierarchy;
+static std::vector<std::vector<cv::Point> > contours;
+static std::vector<std::vector<cv::Point> > contours_poly;
+static std::vector<cv::Rect> targetZone;
 
-ARSAL_Thread_t redtracking_thread = NULL;
-MEASURED_DATA_T measured_data_buffer;
-pthread_mutex_t measured_data_lock;
+static ARSAL_Thread_t redtracking_thread = NULL;
+static MEASURED_DATA_T measured_data_buffer;
+static pthread_mutex_t measured_data_lock;
 
 
 void callbackButton(EnableTracking &trackingStatus)
