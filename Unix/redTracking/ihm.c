@@ -437,7 +437,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
 
             case STATE_STAB:
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
-                *temp++;
+                (*temp)++;
                 if(*temp > 20)
                 {
                     *state = STATE_INITIAL_SEARCH;
@@ -449,7 +449,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 trackPoints = redtracking_get_measured_data();
                 if(trackPoints.centers.size() != 0)
                 {
-                	if(trackPoints.centers[0].first < thresholdLeft)
+                    if(trackPoints.centers[0].first < thresholdLeft)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
                     else if(trackPoints.centers[0].first > thresholdRight)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
@@ -465,7 +465,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
 
             case STATE_FOLLOW:
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
-                *temp++;
+                (*temp)++;
                 if (*temp > 10)
                 {
                     *state = STATE_SEARCH;
@@ -477,9 +477,9 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 trackPoints = redtracking_get_measured_data();
                 if(trackPoints.centers.size() != 0)
                 {
-                	*temp = 0; //Variable de test de multiples ratés
+                    *temp = 0; //Variable de test de multiples rates
 
-                	if(trackPoints.centers[0].first < thresholdLeft)
+                    if(trackPoints.centers[0].first < thresholdLeft)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
                     else if(trackPoints.centers[0].first > thresholdRight)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
@@ -491,13 +491,13 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 }
                 else
                 {
-                	ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
-                	*temp++;
+                    ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
+                    (*temp)++;
 
-                	/*if(*temp == 100)
-                	{
-                		 *state = STATE_LANDING;
-                	}*/
+                    /*if(*temp == 100)
+                    {
+                            *state = STATE_LANDING;
+                    }*/
                 }
                 break;
 
