@@ -93,6 +93,9 @@ extern "C" {
 #define COMMAND_X 0
 #define COMMAND_Y 18
 
+#define MEASURED_DATA1_X 0
+#define MEASURED_DATA1_Y 19
+
 #define ALTITUDE_X 0
 #define ALTITUDE_Y 20
 
@@ -119,6 +122,7 @@ extern "C" {
  *
  ****************************************/
 void *IHM_InputProcessing(void *data);
+void IHM_PrintMeasuredData(IHM_t *ihm);
 
 /*****************************************
  *
@@ -236,6 +240,7 @@ void *IHM_InputProcessing(void *data)
         while (ihm->run)
         {
             key = getch();
+            IHM_PrintMeasuredData(ihm);
 
             if ((key == 27) || (key =='q'))
             {
@@ -687,6 +692,22 @@ void IHM_PrintCommand(IHM_t *ihm, int event)
             default:
                 mvprintw(COMMAND_Y, COMMAND_X, "Command: ....");
                 break;
+        }
+
+    }
+}
+
+void IHM_PrintMeasuredData(IHM_t *ihm)
+{
+    if (ihm != NULL)
+    {
+        MEASURED_DATA_T data = redtracking_get_measured_data();
+        move(MEASURED_DATA1_Y, 0);     // move to begining of line
+        clrtoeol();              // clear line
+        if (!data.centers.empty()) {
+            mvprintw(MEASURED_DATA1_Y, MEASURED_DATA1_X, "Trackpoint 1: %u, %u", data.centers[0].first, data.centers[0].second);
+        } else {
+            mvprintw(MEASURED_DATA1_Y, MEASURED_DATA1_X, "Trackpoint 1: lost");
         }
 
     }
