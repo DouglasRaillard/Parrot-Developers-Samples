@@ -87,8 +87,6 @@ extern "C" {
  *             implementation :
  *
  *****************************************/
-pthread_spinlock_t video_frame_lock;
-
 
 int gIHMRun = 1;
 char gErrorStr[ERROR_STR_LENGTH];
@@ -547,15 +545,15 @@ void positionStateChanged (double latitude, double longitude, double altitude)
     if (ihm != NULL)
     {
         IHM_PrintPosition (ihm, latitude, longitude, altitude);
-    }
+    } 
 }
 
 void altitudeStateChanged (double altitude)
 {
     if (ihm != NULL)
-    {
+    {   
         IHM_PrintAltitude (ihm, altitude);
-    }
+    } 
 }
 
 void commandChanged (int event)
@@ -574,13 +572,10 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
         {
             if (DISPLAY_WITH_MPLAYER)
             {
-                pthread_spin_lock(&video_frame_lock);
                 fwrite(codec.parameters.h264parameters.spsBuffer, codec.parameters.h264parameters.spsSize, 1, videoOut);
                 fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
 
                 fflush (videoOut);
-                pthread_spin_unlock(&video_frame_lock);
-
             }
         }
 
@@ -602,11 +597,9 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
         {
             if (DISPLAY_WITH_MPLAYER)
             {
-                pthread_spin_lock(&video_frame_lock);
                 fwrite(frame->data, frame->used, 1, videoOut);
 
                 fflush (videoOut);
-                pthread_spin_unlock(&video_frame_lock);
             }
         }
         else
