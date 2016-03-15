@@ -1,7 +1,7 @@
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include<pthread.h>
+#include <pthread.h>
 #include "redtracking.h"
 
 using namespace cv;
@@ -29,7 +29,6 @@ ARSAL_Thread_t redtracking_thread = NULL;
 MEASURED_DATA_T measured_data_buffer;
 pthread_mutex_t measured_data_lock;
 
-VideoCapture cap;
 
 void callbackButton(EnableTracking &trackingStatus)
 {
@@ -74,16 +73,14 @@ int init_redtracking() {
 
 
 void *redtracking_thread_loop(void* data) {
-    //cap.set(CV_CAP_PROP_FOURCC, CV_FOURCC('M','J','P','G'));
-    cap = VideoCapture("./video_fifo.h264");
-//    cap = VideoCapture("./h264_dump");
+    VideoCapture cap = VideoCapture("./video_fifo.h264");
     cap.set(CV_CAP_PROP_FOURCC, CV_FOURCC('H', '2', '6', '4'));
 
 
     if ( !cap.isOpened() )  // if not success, exit program
     {
         cout << "Cannot open the H.264 stream from named pipe" << endl;
-        //exit(-1);
+        exit(-1);
     }
 
     Mat imgOriginal;

@@ -126,12 +126,8 @@ int main (int argc, char *argv[])
         if (DISPLAY_WITH_MPLAYER)
         {
             videoOut = fopen("./video_fifo.h264", "w+");
-        }
-        if (!failed)
-        {
             // Redtracking  MUST INIT AFTER VIDEO STREAM
             init_redtracking();
-
         }
     }
 
