@@ -186,9 +186,9 @@ void *redtracking_thread_loop(void* data) {
             {
                 for(size_t i=0; i<target.size(); i++)
                 {
-                    //cv::rectangle(imgOriginal, target[i], cv::Scalar( 0, 0, 255), 2, 8, 0 );
+                    cv::rectangle(imgOriginal, target[i], cv::Scalar( 0, 0, 255), 2, 8, 0 );
                     cv::circle(imgOriginal, centers[i], 1, cv::Scalar(0,255,0), 7, 24);
-                    cv::putText(imgOriginal, "X: "+std::to_string(centers[i].x)+" Y: "+std::to_string(centers[i].y), centers[i], cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(0,255,0), 2.0);
+                    cv::putText(imgOriginal, "["+std::to_string(centers[i].x).substr(0,5)+";"+std::to_string(centers[i].y).substr(0,5)+"]", centers[i], cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(0,255,0), 2.0);
 
                     //update infos for ptitoi/picot command loop
                     measured_data_buffer.centers.push_back(std::make_pair(centers[i].x, centers[i].y));
