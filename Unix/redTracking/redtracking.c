@@ -43,6 +43,10 @@ bool compare_rect(const Rect &a, const Rect &b)
 
 void defineTarget(std::vector<cv::Rect> potentialTargets, std::vector<cv::Rect> &target, int nbTargets)
 {
+    target.clear();
+    if (potentialTargets.empty()) {
+        return;
+    }
 
     std::sort(potentialTargets.begin(), potentialTargets.end(), compare_rect);
 
@@ -51,8 +55,6 @@ void defineTarget(std::vector<cv::Rect> potentialTargets, std::vector<cv::Rect> 
         nbTargets = potentialTargets.size()-1;
     }
 
-    target.clear();
-    nbTargets = nbTargets > 0 ? nbTargets : 0;
     for(std::vector<cv::Rect>::iterator it = potentialTargets.end()-nbTargets; it != potentialTargets.end(); it++)
     {
         target.push_back(*it);
@@ -101,9 +103,6 @@ void *redtracking_thread_loop(void* data) {
 
     cvCreateTrackbar("nbTrackedOjects", "Autopilote Target Setter", &nbTargets, 50); //tracking (0 - 1)
     cvCreateTrackbar("Tracking", "Autopilote Target Setter", &tracking, 1); //tracking (0 - 1)
-
-    // Display the window
-    //waitKey(1);
 
     VideoCapture cap = VideoCapture("./video_fifo.h264");
     cap.set(CV_CAP_PROP_FOURCC, CV_FOURCC('H', '2', '6', '4'));
