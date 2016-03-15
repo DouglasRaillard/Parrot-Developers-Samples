@@ -39,3 +39,4 @@
 *.hex
 
 *.kate-swp
+core*
