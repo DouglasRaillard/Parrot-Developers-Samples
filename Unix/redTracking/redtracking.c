@@ -173,6 +173,8 @@ void *redtracking_thread_loop(void* data) {
                     measured_data_buffer_temp.centers.push_back(std::make_pair(centers[i].x, centers[i].y));
                     measured_data_buffer_temp.areas.push_back(target[i].area());
 
+                    // Hysteresis: give an empty centers vector only if the vector has been empty for 10 iterations,
+                    // otherwise give the last non empty data available to avoid state switching to often
                     if(measured_data_buffer_temp.centers.empty()){
                         if(empty_counter>=10) {
                             measured_data_buffer = measured_data_buffer_temp;
