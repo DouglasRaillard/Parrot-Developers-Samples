@@ -8,7 +8,7 @@
       notice, this list of conditions and the following disclaimer.
     * Redistributions in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in
-      the documentation and/or other materials provided with the 
+      the documentation and/or other materials provided with the
       distribution.
     * Neither the name of Parrot nor the names
       of its contributors may be used to endorse or promote products
@@ -22,7 +22,7 @@
     COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
     INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
     BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
-    OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
+    OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
     AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
     OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
     OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
@@ -39,6 +39,11 @@
  *             include file :
  *
  *****************************************/
+#include "redtracking.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdlib.h>
 #include <curses.h>
@@ -53,6 +58,7 @@
 #include "BebopPiloting.h"
 #include "ihm.h"
 
+
 /*****************************************
  *
  *             define :
@@ -65,7 +71,8 @@
 #define BEBOP_IP_ADDRESS "192.168.42.1"
 #define BEBOP_DISCOVERY_PORT 44444
 
-#define DISPLAY_WITH_MPLAYER 0
+#define DISPLAY_WITH_MPLAYER 1
+#define REDTRACKING_ENABLED 1
 
 #define IHM
 /*****************************************
@@ -90,6 +97,7 @@ int frameNb = 0;
 ARSAL_Sem_t stateSem;
 int isBebop2 = 0;
 
+
 int main (int argc, char *argv[])
 {
     // local declarations
@@ -101,32 +109,35 @@ int main (int argc, char *argv[])
     pid_t child = 0;
     ARSAL_Sem_Init (&(stateSem), 0, 0);
 
+
     if (!failed)
     {
+//         if (DISPLAY_WITH_MPLAYER)
+//         {
+//             // fork the process to launch mplayer
+//             if ((child = fork()) == 0)
+//             {
+//                 execlp("xterm", "xterm", "-e", "mplayer", "-demuxer",  "h264es", "video_fifo.h264", "-benchmark", "-really-quiet", NULL);
+//                 ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Missing mplayer, you will not see the video. Please install mplayer and xterm.");
+//                 return -1;
+//             }
+//         }
+
         if (DISPLAY_WITH_MPLAYER)
         {
-            // fork the process to launch mplayer
-            if ((child = fork()) == 0)
-            {
-                execlp("xterm", "xterm", "-e", "mplayer", "-demuxer",  "h264es", "video_fifo.h264", "-benchmark", "-really-quiet", NULL);
-                ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Missing mplayer, you will not see the video. Please install mplayer and xterm.");
-                return -1;
-            }
-        }
-        
-        if (DISPLAY_WITH_MPLAYER)
-        {
-            videoOut = fopen("./video_fifo.h264", "w");
+            videoOut = fopen("./video_fifo.h264", "w+");
+            // Redtracking  MUST INIT AFTER VIDEO STREAM
+            init_redtracking();
         }
     }
-    
+
 #ifdef IHM
     ihm = IHM_New (&onInputEvent);
     if (ihm != NULL)
     {
         gErrorStr[0] = '\0';
         ARSAL_Print_SetCallback (customPrintCallback); //use a custom callback to print, for not disturb ncurses IHM
-        
+
         IHM_PrintHeader (ihm, "-- Bebop Piloting --");
     }
     else
@@ -135,22 +146,22 @@ int main (int argc, char *argv[])
         failed = 1;
     }
 #endif
-    
+
     // create a discovery device
     if (!failed)
     {
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- init discovey device ... ");
         eARDISCOVERY_ERROR errorDiscovery = ARDISCOVERY_OK;
-        
+
         device = ARDISCOVERY_Device_New (&errorDiscovery);
-        
+
         if (errorDiscovery == ARDISCOVERY_OK)
         {
             ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - ARDISCOVERY_Device_InitWifi ...");
             // create a Bebop drone discovery device (ARDISCOVERY_PRODUCT_ARDRONE)
-            
+
             errorDiscovery = ARDISCOVERY_Device_InitWifi (device, ARDISCOVERY_PRODUCT_ARDRONE, "bebop", BEBOP_IP_ADDRESS, BEBOP_DISCOVERY_PORT);
-            
+
             if (errorDiscovery != ARDISCOVERY_OK)
             {
                 failed = 1;
@@ -163,12 +174,12 @@ int main (int argc, char *argv[])
             failed = 1;
         }
     }
-    
+
     // create a device controller
     if (!failed)
     {
         deviceController = ARCONTROLLER_Device_New (device, &error);
-        
+
         if (error != ARCONTROLLER_OK)
         {
             ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "Creation of deviceController failed.");
@@ -179,70 +190,70 @@ int main (int argc, char *argv[])
             IHM_setCustomData(ihm, deviceController);
         }
     }
-    
+
     if (!failed)
     {
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- delete discovey device ... ");
         ARDISCOVERY_Device_Delete (&device);
     }
-    
+
     // add the state change callback to be informed when the device controller starts, stops...
     if (!failed)
     {
         error = ARCONTROLLER_Device_AddStateChangedCallback (deviceController, stateChanged, deviceController);
-        
+
         if (error != ARCONTROLLER_OK)
         {
             ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "add State callback failed.");
             failed = 1;
         }
     }
-    
+
     // add the command received callback to be informed when a command has been received from the device
     if (!failed)
     {
         error = ARCONTROLLER_Device_AddCommandReceivedCallback (deviceController, commandReceived, deviceController);
-        
+
         if (error != ARCONTROLLER_OK)
         {
             ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "add callback failed.");
             failed = 1;
         }
     }
-    
+
     // add the frame received callback to be informed when a streaming frame has been received from the device
     if (!failed)
     {
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- set Video callback ... ");
         error = ARCONTROLLER_Device_SetVideoStreamCallbacks (deviceController, decoderConfigCallback, didReceiveFrameCallback, NULL , NULL);
-        
+
         if (error != ARCONTROLLER_OK)
         {
             failed = 1;
             ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%", ARCONTROLLER_Error_ToString(error));
         }
     }
-    
+
     if (!failed)
     {
         IHM_PrintInfo(ihm, "Connecting ...");
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Connecting ...");
         error = ARCONTROLLER_Device_Start (deviceController);
-        
+
         if (error != ARCONTROLLER_OK)
         {
             failed = 1;
             ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
         }
     }
-    
+
     if (!failed)
     {
-        // wait state update update 
+        // wait state update update
         ARSAL_Sem_Wait (&(stateSem));
-        
+
         deviceState = ARCONTROLLER_Device_GetState (deviceController, &error);
-        
+
         if ((error != ARCONTROLLER_OK) || (deviceState != ARCONTROLLER_DEVICE_STATE_RUNNING))
         {
             failed = 1;
@@ -262,11 +273,12 @@ int main (int argc, char *argv[])
             failed = 1;
         }
     }
-    
+
+
     if (!failed)
     {
         IHM_PrintInfo(ihm, "Running ... ('t' to takeoff ; Spacebar to land ; 'e' for emergency ; Arrow keys and ('r','f','d','g') to move ; 'q' to quit)");
-        
+
         #ifdef IHM
         while (gIHMRun)
         {
@@ -277,51 +289,51 @@ int main (int argc, char *argv[])
         sleep(20);
         #endif
     }
-    
+
 #ifdef IHM
     IHM_Delete (&ihm);
 #endif
-    
+
     // we are here because of a disconnection or user has quit IHM, so safely delete everything
     if (deviceController != NULL)
     {
-        
-        
+
+
         deviceState = ARCONTROLLER_Device_GetState (deviceController, &error);
         if ((error == ARCONTROLLER_OK) && (deviceState != ARCONTROLLER_DEVICE_STATE_STOPPED))
         {
             IHM_PrintInfo(ihm, "Disconnecting ...");
             ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Disconnecting ...");
-            
+
             error = ARCONTROLLER_Device_Stop (deviceController);
-            
+
             if (error == ARCONTROLLER_OK)
             {
-                // wait state update update 
+                // wait state update update
                 ARSAL_Sem_Wait (&(stateSem));
             }
         }
-        
+
         IHM_PrintInfo(ihm, "");
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "ARCONTROLLER_Device_Delete ...");
         ARCONTROLLER_Device_Delete (&deviceController);
-        
+
         if (DISPLAY_WITH_MPLAYER)
         {
             fflush (videoOut);
             fclose (videoOut);
-            
+
             if (child > 0)
             {
                 kill(child, SIGKILL);
             }
         }
     }
-    
+
     ARSAL_Sem_Destroy (&(stateSem));
-    
+
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- END --");
-    
+
     return EXIT_SUCCESS;
 }
 
@@ -335,20 +347,20 @@ int main (int argc, char *argv[])
 void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData)
 {
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - stateChanged newState: %d .....", newState);
-    
+
     switch (newState)
     {
         case ARCONTROLLER_DEVICE_STATE_STOPPED:
             ARSAL_Sem_Post (&(stateSem));
             //stop
             gIHMRun = 0;
-            
+
             break;
-        
+
         case ARCONTROLLER_DEVICE_STATE_RUNNING:
             ARSAL_Sem_Post (&(stateSem));
             break;
-            
+
         default:
             break;
     }
@@ -357,9 +369,9 @@ void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR erro
 // called when a command has been received from the drone
 void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary, void *customData)
 {
-    ARCONTROLLER_Device_t *deviceController = customData;
+    ARCONTROLLER_Device_t *deviceController = (ARCONTROLLER_Device_t*)customData;
     eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
-    
+
     if (deviceController != NULL)
     {
         // if the command received is a battery state changed
@@ -367,17 +379,17 @@ void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICT
         {
             ARCONTROLLER_DICTIONARY_ARG_t *arg = NULL;
             ARCONTROLLER_DICTIONARY_ELEMENT_t *singleElement = NULL;
-            
+
             if (elementDictionary != NULL)
             {
                 // get the command received in the device controller
                 HASH_FIND_STR (elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, singleElement);
-                
+
                 if (singleElement != NULL)
                 {
                     // get the value
                     HASH_FIND_STR (singleElement->arguments, ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_BATTERYSTATECHANGED_PERCENT, arg);
-                    
+
                     if (arg != NULL)
                     {
                         // update UI
@@ -509,47 +521,47 @@ void batteryStateChanged (uint8_t percent)
     if (ihm != NULL)
     {
         IHM_PrintBattery (ihm, percent);
-    } 
+    }
 }
 
 void attitudeStateChanged (float roll, float pitch, float yaw)
 {
     if (ihm != NULL)
-    {   
+    {
         IHM_PrintAttitude (ihm, roll, pitch, yaw);
-    } 
+    }
 }
 
 void speedStateChanged (float roll, float pitch, float yaw)
 {
     if (ihm != NULL)
-    {   
+    {
         IHM_PrintSpeed (ihm, roll, pitch, yaw);
-    } 
+    }
 }
 
 void positionStateChanged (double latitude, double longitude, double altitude)
 {
     if (ihm != NULL)
-    {   
+    {
         IHM_PrintPosition (ihm, latitude, longitude, altitude);
-    } 
+    }
 }
 
 void altitudeStateChanged (double altitude)
 {
     if (ihm != NULL)
-    {   
+    {
         IHM_PrintAltitude (ihm, altitude);
-    } 
+    }
 }
 
 void commandChanged (int event)
 {
     if (ihm != NULL)
-    {   
+    {
         IHM_PrintCommand (ihm, event);
-    } 
+    }
 }
 
 eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, void *customData)
@@ -562,17 +574,17 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
             {
                 fwrite(codec.parameters.h264parameters.spsBuffer, codec.parameters.h264parameters.spsSize, 1, videoOut);
                 fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
-                
+
                 fflush (videoOut);
             }
         }
-            
+
     }
     else
     {
         ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
     }
-    
+
     return ARCONTROLLER_OK;
 }
 
@@ -584,9 +596,9 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
         if (frame != NULL)
         {
             if (DISPLAY_WITH_MPLAYER)
-            {                
+            {
                 fwrite(frame->data, frame->used, 1, videoOut);
-                
+
                 fflush (videoOut);
             }
         }
@@ -599,18 +611,18 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
     {
         ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
     }
-    
+
     return ARCONTROLLER_OK;
 }
 
 
-// IHM callbacks: 
+// IHM callbacks:
 void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
 {
     // Manage IHM input events
     ARCONTROLLER_Device_t *deviceController = (ARCONTROLLER_Device_t *)customData;
     eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
-    
+
     commandChanged(event);
     switch (event)
     {
@@ -703,7 +715,7 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
         default:
             break;
     }
-    
+
     // This should be improved, here it just displays that one error occured
     if (error != ARCONTROLLER_OK)
     {
@@ -714,14 +726,17 @@ void onInputEvent (eIHM_INPUT_EVENT event, void *customData)
 int customPrintCallback (eARSAL_PRINT_LEVEL level, const char *tag, const char *format, va_list va)
 {
     // Custom callback used when ncurses is runing for not disturb the IHM
-    
+
     if ((level == ARSAL_PRINT_ERROR) && (strcmp(TAG, tag) == 0))
     {
         // Save the last Error
         vsnprintf(gErrorStr, (ERROR_STR_LENGTH - 1), format, va);
         gErrorStr[ERROR_STR_LENGTH - 1] = '\0';
     }
-    
+
     return 1;
 }
 
+#ifdef __cplusplus
+}
+#endif

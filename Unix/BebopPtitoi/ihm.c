@@ -8,7 +8,7 @@
       notice, this list of conditions and the following disclaimer.
     * Redistributions in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in
-      the documentation and/or other materials provided with the 
+      the documentation and/or other materials provided with the
       distribution.
     * Neither the name of Parrot nor the names
       of its contributors may be used to endorse or promote products
@@ -22,7 +22,7 @@
     COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
     INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
     BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
-    OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
+    OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
     AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
     OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
     OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
@@ -39,6 +39,10 @@
  *             include file :
  *
  *****************************************/
+ #include "MeasuredData.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdlib.h>
 #include <curses.h>
@@ -48,6 +52,7 @@
 #include <libARSAL/ARSAL.h>
 
 #include "ihm.h"
+
 
 /*****************************************
  *
@@ -88,6 +93,9 @@
 #define COMMAND_X 0
 #define COMMAND_Y 18
 
+#define MEASURED_DATA1_X 0
+#define MEASURED_DATA1_Y 19
+
 #define ALTITUDE_X 0
 #define ALTITUDE_Y 20
 
@@ -96,9 +104,17 @@
  *       treshold following flight:
  *
  ****************************************/
-#define thresholdRight 50
-#define thresholdLeft 100
-#define errorValue -1000
+#define centerX 300
+#define maxX 600
+
+#define thresholdRight (centerX+100)
+#define thresholdLeft (centerX-100)
+#define proportionalThresholdRight (centerX+10)
+#define proportionalThresholdLeft (centerX-10)
+#define yawProportionalCommandGain 50
+
+#define DATA_X 0
+#define DATA_Y 19
 
 /*****************************************
  *
@@ -106,6 +122,7 @@
  *
  ****************************************/
 void *IHM_InputProcessing(void *data);
+void IHM_PrintMeasuredData(IHM_t *ihm);
 
 /*****************************************
  *
@@ -117,17 +134,17 @@ IHM_t *IHM_New (IHM_onInputEvent_t onInputEventCallback)
 {
     int failed = 0;
     IHM_t *newIHM = NULL;
-    
+
     // check parameters
     if (onInputEventCallback == NULL)
     {
         failed = 1;
     }
-    
+
     if (!failed)
     {
         //  Initialize IHM
-        newIHM = malloc(sizeof(IHM_t));
+        newIHM = (IHM_t*)malloc(sizeof(IHM_t));
         if (newIHM != NULL)
         {
             //  Initialize ncurses
@@ -142,17 +159,17 @@ IHM_t *IHM_New (IHM_onInputEvent_t onInputEventCallback)
             failed = 1;
         }
     }
-    
+
     if (!failed)
     {
         raw();                  // Line buffering disabled
         keypad(stdscr, TRUE);
         noecho();               // Don't echo() while we do getch
         timeout(100);
-        
+
         refresh();
     }
-    
+
     if (!failed)
     {
         //start input thread
@@ -161,7 +178,7 @@ IHM_t *IHM_New (IHM_onInputEvent_t onInputEventCallback)
             failed = 1;
         }
     }
-    
+
     if (failed)
     {
         IHM_Delete (&newIHM);
@@ -179,19 +196,19 @@ void IHM_Delete (IHM_t **ihm)
         if ((*ihm) != NULL)
         {
             (*ihm)->run = 0;
-            
+
             if ((*ihm)->inputThread != NULL)
             {
                 ARSAL_Thread_Join((*ihm)->inputThread, NULL);
                 ARSAL_Thread_Destroy(&((*ihm)->inputThread));
                 (*ihm)->inputThread = NULL;
             }
-            
+
             delwin((*ihm)->mainWindow);
             (*ihm)->mainWindow = NULL;
             endwin();
             refresh();
-            
+
             free (*ihm);
             (*ihm) = NULL;
         }
@@ -213,7 +230,7 @@ void *IHM_InputProcessing(void *data)
 
     struct timeval beginAutomationTime;
     bool automationActive = false;
-    
+
     bool followingActive = false;
     COMMAND_STATE state = STATE_NONE;
     int temp = 0;
@@ -223,7 +240,8 @@ void *IHM_InputProcessing(void *data)
         while (ihm->run)
         {
             key = getch();
-            
+            IHM_PrintMeasuredData(ihm);
+
             if ((key == 27) || (key =='q'))
             {
                 if(ihm->onInputEventCallback != NULL)
@@ -349,6 +367,8 @@ void *IHM_InputProcessing(void *data)
                     followingActive = true;
                     automationActive = false;
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_TAKEOFF, ihm->customData);
+                    //STATE_DIAGRAM:WAITING_KEY;
+                    //STATE_DIAGRAM:WAITING_KEY -> STAB [label="When i key is pressed in IHM"];
                     state = STATE_STAB;
                     temp = 0;
                 }
@@ -365,20 +385,19 @@ void *IHM_InputProcessing(void *data)
                     else if (followingActive == true)
                     {
                         automationActive = false;
-                        FollowingNavigation(ihm, &followingActive, &state, temp);
-                        temp++;
+                        FollowingNavigation(ihm, &followingActive, &state, &temp);
                     }
                     else
                     {
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
-                    } 
+                    }
                 }
             }
-            
+
             usleep(10);
         }
     }
-    
+
     return NULL;
 }
 
@@ -409,20 +428,20 @@ void AutonomousNavigation(IHM_t *ihm, struct timeval beginTime, bool *automation
             *automationActive = false;
         }
     }
-    
+
 }
 
-void GetObjectCoordonnees(double *X1, double *Y1, double *X2, double *Y2, double *X3, double *Y3)
-{
-    *X1 = 40;
-    *Y1 = 0;
-}
-
-void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state, int temp)
+void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state, int *temp)
 {
     if(*followingActive)
     {
-        double X1, Y1, X2, Y2, X3, Y3;
+        struct MEASURED_DATA_T trackPoints;
+        ARCONTROLLER_Device_t *deviceController = (ARCONTROLLER_Device_t *)ihm->customData;
+        //Print state
+        move(DATA_Y, 0);     // move to begining of line
+        clrtoeol();          // clear line
+        mvprintw(DATA_Y, DATA_X, "State: %u", *state);
+
         switch(*state)
         {
             case STATE_NONE:
@@ -431,44 +450,94 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
 
             case STATE_STAB:
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
-                if(temp > 100)
-                    *state = STATE_SEARCH;
+                (*temp)++;
+                if(*temp > 20)
+                {
+                    *state = STATE_INITIAL_SEARCH; //Start the initial target scan after 20 cycle
+                    *temp = 0;
+                }
                 break;
 
             case STATE_INITIAL_SEARCH:
-                GetObjectCoordonnees(&X1, &Y1, &X2, &Y2, &X3, &Y3);
-                if(X1 != errorValue && Y1 != errorValue)
-                    if(X1 < thresholdLeft)
+                trackPoints = redtracking_get_measured_data();
+                if(!trackPoints.centers.empty())
+                {
+                    // Threshold controller
+                    if(trackPoints.centers[0].first < thresholdLeft){
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
-                    else if(X1 > thresholdRight)
+                    }
+                    else if(trackPoints.centers[0].first > thresholdRight) {
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
+                    }
                     else
-                        *state = STATE_FOLLOW;
-                else
+                    {
+                        *state = STATE_SEARCH; // Start search (tracking controller) if the target is approximately in front of the drone
+                        *temp = 0;
+                    }
+                }
+                else {
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
+                }
                 break;
 
             case STATE_FOLLOW:
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
-                *state = STATE_SEARCH;
+                (*temp)++;
+                // Search the target once in a while, or do it if absolutely necessary (target really not in the front)
+                if (*temp > 100 )
+                {
+                    *state = STATE_SEARCH; // Reenable tracking after 10 cycles or if the target is really not in front of the drone
+                    *temp = 0;
+                }
                 break;
 
             case STATE_SEARCH:
-                GetObjectCoordonnees(&X1, &Y1, &X2, &Y2, &X3, &Y3);
-                if(X1 != errorValue && Y1 != errorValue)
-                    if(X1 < thresholdLeft)
+                trackPoints = redtracking_get_measured_data();
+                if(!trackPoints.centers.empty())
+                {
+                    /*
+                    // PI controller
+                    // If approximately correctly oriented, goes straight
+                    if(trackPoints.centers[0].first < proportionalThresholdLeft && trackPoints.centers[0].first > proportionalThresholdRight){
+                        *state = STATE_FOLLOW; // If the target is right ahead, go straight to it without the proportionnal controller
+                        *temp = 0;
+                    }
+                    // If too much deviation, use the proportionnal corrector at a slower linear speed
+                    else
+                    {
+                        int yaw_command = yawProportionalCommandGain*(trackPoints.centers[0].first-centerX)/(maxX-centerX);
+                        // Sign opposed to sign of yaw command
+                        int vertical_speed_sign = yaw_command >= 0 ? -1 : 1;
+                        deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, yaw_command, vertical_speed_sign*10, 0);
+                    }*/
+                    
+                    // Threshold controller
+                    if(trackPoints.centers[0].first < thresholdLeft)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
-                    else if(X1 > thresholdRight)
+                    else if(trackPoints.centers[0].first > thresholdRight)
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                     else
+                    {
                         *state = STATE_FOLLOW;
+                        *temp = 0;
+                    }
+                    
+                }
                 else
-                    *state = STATE_LANDING;
+                {
+                    ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
+                    (*temp)++;
+                     *state = STATE_SEARCH; // If no target is found, keep searching for it
+                    /*if(*temp == 100)
+                    {
+                            //*state = STATE_LANDING;
+                    }*/
+                }
                 break;
 
             case STATE_LANDING:
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_LAND, ihm->customData);
-                *state = STATE_NONE;
+                *state = STATE_NONE; // Drone has landed, waiting for orders
                 *followingActive = false;
                 break;
 
@@ -627,6 +696,25 @@ void IHM_PrintCommand(IHM_t *ihm, int event)
                 mvprintw(COMMAND_Y, COMMAND_X, "Command: ....");
                 break;
         }
-        
+
     }
 }
+
+void IHM_PrintMeasuredData(IHM_t *ihm)
+{
+    if (ihm != NULL)
+    {
+        MEASURED_DATA_T data = redtracking_get_measured_data();
+        move(MEASURED_DATA1_Y, 0);     // move to begining of line
+        clrtoeol();              // clear line
+        if (!data.centers.empty()) {
+            mvprintw(MEASURED_DATA1_Y, MEASURED_DATA1_X, "Trackpoint 1: %u, %u", data.centers[0].first, data.centers[0].second);
+        } else {
+            mvprintw(MEASURED_DATA1_Y, MEASURED_DATA1_X, "Trackpoint 1: lost");
+        }
+
+    }
+}
+#ifdef __cplusplus
+}
+#endif
