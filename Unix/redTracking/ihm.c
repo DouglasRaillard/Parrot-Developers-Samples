@@ -524,9 +524,9 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 else
                 {
                     ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
-                    (*temp)++;
-                     *state = STATE_SEARCH; // If no target is found, keep searching for it
-                    /*if(*temp == 100)
+                     *state = STATE_INITIAL_SEARCH; // If no target is found, keep searching for it
+                    /*(*temp)++;
+                    if(*temp == 100)
                     {
                             //*state = STATE_LANDING;
                     }*/
