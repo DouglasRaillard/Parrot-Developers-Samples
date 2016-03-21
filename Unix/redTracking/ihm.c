@@ -107,11 +107,11 @@ extern "C" {
 #define centerX 300
 #define maxX 600
 
-#define thresholdRight (centerX+50)
-#define thresholdLeft (centerX-50)
-#define proportionalThresholdRight (centerX+10)
-#define proportionalThresholdLeft (centerX-10)
-#define yawProportionalCommandGain 50
+#define thresholdRight (centerX+250)
+#define thresholdLeft (centerX-250)
+#define proportionalThresholdRight (centerX+50)
+#define proportionalThresholdLeft (centerX-50)
+#define yawProportionalCommandGain 90
 
 #define DATA_X 0
 #define DATA_Y 19
@@ -122,7 +122,6 @@ extern "C" {
  *
  ****************************************/
 void *IHM_InputProcessing(void *data);
-void IHM_PrintMeasuredData(IHM_t *ihm);
 
 /*****************************************
  *

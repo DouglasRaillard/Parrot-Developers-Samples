@@ -91,5 +91,6 @@ void IHM_PrintSpeed(IHM_t *ihm, float speedX, float speedY, float speedZ);
 void IHM_PrintPosition(IHM_t *ihm, double latitude, double longitude, double altitude);
 void IHM_PrintAltitude(IHM_t *ihm, double altitude);
 void IHM_PrintCommand(IHM_t *ihm, int event);
+void IHM_PrintMeasuredData(IHM_t *ihm);
 
 #endif /* _BEBOP_PILOTING_IHM_H_ */
