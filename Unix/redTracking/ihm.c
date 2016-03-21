@@ -107,11 +107,11 @@ extern "C" {
 #define centerX 300
 #define maxX 600
 
-#define thresholdRight (centerX+250)
-#define thresholdLeft (centerX-250)
-#define proportionalThresholdRight (centerX+50)
-#define proportionalThresholdLeft (centerX-50)
-#define yawProportionalCommandGain 90
+#define thresholdRight (centerX+100)
+#define thresholdLeft (centerX-100)
+#define proportionalThresholdRight (centerX+60)
+#define proportionalThresholdLeft (centerX-60)
+#define yawProportionalCommandGain 70
 
 #define DATA_X 0
 #define DATA_Y 19
@@ -383,7 +383,7 @@ void *IHM_InputProcessing(void *data)
                     else if (followingActive == true)
                     {
                         automationActive = false;
-                        ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
+                        //ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
                         FollowingNavigation(ihm, &followingActive, &state, &temp);
                     }
                     else
@@ -488,9 +488,10 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
 
             case STATE_FOLLOW:
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
-                (*temp)++;
                 // Search the target once in a while, or do it if absolutely necessary (target really not in the front)
-                if (*temp > 500000 || trackPoints.centers[0].first < thresholdLeft || trackPoints.centers[0].first > thresholdRight)
+                (*temp)++;
+                //if (*temp > 20000 || trackPoints.centers[0].first < thresholdLeft || trackPoints.centers[0].first > thresholdRight)
+                if (trackPoints.centers[0].first < thresholdLeft || trackPoints.centers[0].first > thresholdRight)
                 {
                     *state = STATE_SEARCH; // Reenable tracking after 10 cycles or if the target is really not in front of the drone
                     *temp = 0;
@@ -500,10 +501,11 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
             case STATE_SEARCH:
                 // PI controller
                 // If approximately correctly oriented, goes straight
-                if(trackPoints.centers[0].first < proportionalThresholdLeft && trackPoints.centers[0].first > proportionalThresholdRight){
+                if(trackPoints.centers[0].first > proportionalThresholdLeft && trackPoints.centers[0].first < proportionalThresholdRight){
                     *state = STATE_FOLLOW; // If the target is right ahead, go straight to it without the proportionnal controller
                     *temp = 0;
                 }
+
                 // If too much deviation, use the proportionnal corrector at a slower linear speed
                 else
                 {

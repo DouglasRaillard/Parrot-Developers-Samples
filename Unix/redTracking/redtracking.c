@@ -172,7 +172,7 @@ void *redtracking_thread_loop(void* data) {
                     //update infos for ptitoi/picot command loop
                     measured_data_buffer_temp.centers.push_back(std::make_pair(centers[i].x, centers[i].y));
                     if(measured_data_buffer_temp.centers.empty()){
-                        if(empty_counter>=5) {
+                        if(empty_counter>=10) {
                             measured_data_buffer = measured_data_buffer_temp;
                             empty_counter = 0;
                         } else {
