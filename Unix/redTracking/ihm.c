@@ -448,7 +448,6 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
         clrtoeol();          // clear line
         mvprintw(DATA_Y, DATA_X, "State: %u", *state);
 
-
         switch(*state)
         {
             case STATE_NONE:
@@ -505,7 +504,6 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                     *state = STATE_FOLLOW; // If the target is right ahead, go straight to it without the proportionnal controller
                     *temp = 0;
                 }
-
                 // If too much deviation, use the proportionnal corrector at a slower linear speed
                 else
                 {

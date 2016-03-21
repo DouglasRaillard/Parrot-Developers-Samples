@@ -107,8 +107,8 @@ extern "C" {
 #define centerX 300
 #define maxX 600
 
-#define thresholdRight (centerX+100)
-#define thresholdLeft (centerX-100)
+#define thresholdRight (centerX+70)
+#define thresholdLeft (centerX-70)
 #define proportionalThresholdRight (centerX+10)
 #define proportionalThresholdLeft (centerX-10)
 #define yawProportionalCommandGain 50
@@ -483,7 +483,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
                 (*temp)++;
                 // Search the target once in a while, or do it if absolutely necessary (target really not in the front)
-                if (*temp > 100 )
+                if (*temp > 2 )
                 {
                     *state = STATE_SEARCH; // Reenable tracking after 10 cycles or if the target is really not in front of the drone
                     *temp = 0;
