@@ -39,7 +39,9 @@
  *             include file :
  *
  *****************************************/
- #include "MeasuredData.h"
+#include "MeasuredData.h"
+#include "Logging.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -398,6 +400,7 @@ void *IHM_InputProcessing(void *data)
                 }
             }
 
+            dumpLog();
             usleep(10);
         }
     }
@@ -617,6 +620,9 @@ void IHM_PrintSpeed(IHM_t *ihm, float speedX, float speedY, float speedZ)
         clrtoeol();              // clear line
         mvprintw(SPEEDZ_Y, SPEEDZ_X, "Speed Z: %f", speedZ);
     }
+    addValueForNextLogEntry(FIELD_SPEED_X, speedX);
+    addValueForNextLogEntry(FIELD_SPEED_Y, speedY);
+    addValueForNextLogEntry(FIELD_SPEED_Z, speedZ);
 }
 
 void IHM_PrintPosition(IHM_t *ihm, double latitude, double longitude, double altitude)
@@ -698,7 +704,7 @@ void IHM_PrintCommand(IHM_t *ihm, int event)
                 mvprintw(COMMAND_Y, COMMAND_X, "Command: ....");
                 break;
         }
-
+        addValueForNextLogEntry(FIELD_COMMAND_ID, event);
     }
 }
 

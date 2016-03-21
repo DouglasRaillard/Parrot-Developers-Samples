@@ -40,6 +40,8 @@
  *
  *****************************************/
 #include "redtracking.h"
+#include "Logging.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -109,6 +111,7 @@ int main (int argc, char *argv[])
     pid_t child = 0;
     ARSAL_Sem_Init (&(stateSem), 0, 0);
 
+    initLogging("./log.csv", "w");
 
     if (!failed)
     {
@@ -333,6 +336,8 @@ int main (int argc, char *argv[])
     ARSAL_Sem_Destroy (&(stateSem));
 
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- END --");
+
+    shutdownLogging();
 
     return EXIT_SUCCESS;
 }

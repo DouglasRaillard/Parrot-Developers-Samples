@@ -18,7 +18,7 @@ uint64_t logging_start_timestamp_micro = 0;
 
 FILE *stream;
 FIELD_TYPE buffer[FIELD_LAST_ITEM] __attribute__ ((aligned (8)));
-LOGGING_BUFFER_STATUS buffer_status = 0;
+LOGGING_BUFFER_STATUS buffer_status = FIELDS_BUFFER_CLEAN;
 FIELD_TYPE temp_buffer[sizeof_array(buffer)] __attribute__ ((aligned (8)));
 
 uint64_t _getCurrentTimestampMicro() {
@@ -72,7 +72,7 @@ int shutdownLogging() {
     return 0;
 }
 
-int addValueForNextLogEntry(FIELD_TYPE field, FIELD_NAME name) {
+int addValueForNextLogEntry(FIELD_NAME name, FIELD_TYPE field) {
     // Must be atomic
     __atomic_store(&buffer[name], &field, __ATOMIC_SEQ_CST);
 
@@ -108,7 +108,7 @@ int __dumpLog(FILE* stream, uint64_t current_timestamp_micro) {
     // Start from the second item because we handle timestamp appart
     for(size_t i=1; i < sizeof_array(temp_buffer); i++) {
         char field_buffer[FIELDS_PRECISION_INTEGRAL+1+FIELDS_PRECISION_DECIMAL+1]; // digits + the dot + null character
-        int string_length = snprintf(field_buffer, sizeof(field_buffer), "%"FIELDS_PRECISION_INTEGRAL_STRING"."FIELDS_PRECISION_DECIMAL_STRING"f", (double)temp_buffer[i]);
+        int string_length = snprintf(field_buffer, sizeof(field_buffer), "%" FIELDS_PRECISION_INTEGRAL_STRING "." FIELDS_PRECISION_DECIMAL_STRING "f", (double)temp_buffer[i]);
         fwrite(field_buffer, 1, string_length, stream);
         // Print separator only if not last field on the line
         if(i+1 != sizeof_array(temp_buffer)) {

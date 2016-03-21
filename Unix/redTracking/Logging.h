@@ -11,5 +11,5 @@ int dumpLog();
 // Recommended mode to overwrite the log each time the file is opened: "wb"
 int initLogging(const char *path, const char *mode);
 int shutdownLogging();
-int addValueForNextLogEntry(FIELD_TYPE field, FIELD_NAME name);
+int addValueForNextLogEntry(FIELD_NAME name, FIELD_TYPE field);
 char *getLogFields();

@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <cstdio>
 #include "redtracking.h"
+#include "Logging.h"
 
 using namespace cv;
 using namespace std;
@@ -185,6 +186,8 @@ void *redtracking_thread_loop(void* data) {
                     } else {
                         measured_data_buffer = measured_data_buffer_temp;
                         empty_counter = 0;
+                        addValueForNextLogEntry(FIELD_TRACKPOINT_X, measured_data_buffer.centers[0].first);
+                        addValueForNextLogEntry(FIELD_TRACKPOINT_Y, measured_data_buffer.centers[0].second);
                     }
                     redtracking_update_measured_data(&measured_data_buffer);
                 }

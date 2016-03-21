@@ -13,10 +13,10 @@ EXTERNAL_LIB=-lncurses -lopencv_calib3d -lopencv_contrib -lopencv_core -lopencv_
 LIBS=-L$(LDIR) -larsal -larcontroller -lardiscovery $(EXTERNAL_LIB) -Wl,-rpath=$(LDIR)
 LIBS_DBG=-L$(LDIR) -larsal_dbg -larcontroller_dbg -lardiscovery_dbg $(EXTERNAL_LIB) -Wl,-rpath=$(LDIR)
 
-_DEPS = BebopPiloting.h ihm.h
+_DEPS = BebopPiloting.h ihm.h LoggingFieldNames.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = BebopPiloting.o ihm.o redtracking.o
+_OBJ = BebopPiloting.o ihm.o redtracking.o Logging.o
 OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
 
 FIFO = video_fifo.h264
