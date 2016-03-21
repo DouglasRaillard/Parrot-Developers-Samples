@@ -489,10 +489,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 break;
 
             case STATE_FOLLOW:
-                while(true) {
-                    ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
-                    usleep(10);
-                }
+                ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);    
                 (*temp)++;
                 // Search the target once in a while, or do it if absolutely necessary (target really not in the front)
                 /*if (*temp > 10000000000)// || trackPoints.centers[0].first < thresholdLeft || trackPoints.centers[0].first > thresholdRight)
