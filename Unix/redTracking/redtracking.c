@@ -20,7 +20,7 @@ static int iHighS = 255;
 static int iLowV = 104;
 static int iHighV = 255;
 
-static int tracking = 0;
+static int tracking = 1;
 static int nbTargets = 1;
 
 static EnableTracking trackingStatus = OBJECT_NOT_DETECTED;
@@ -92,7 +92,7 @@ void *redtracking_thread_loop(void* data) {
     cvCreateTrackbar("LowV", "Autopilote Target Setter", &iLowV, 255); //Value (0 - 255)
     cvCreateTrackbar("HighV", "Autopilote Target Setter", &iHighV, 255);
 
-    cvCreateTrackbar("nbTrackedOjects", "Autopilote Target Setter", &nbTargets, 50); //tracking (0 - 1)
+    cvCreateTrackbar("nbTrackedOjects", "Autopilote Target Setter", &nbTargets, 50); //nbTargets (0 - 50)
     cvCreateTrackbar("Tracking", "Autopilote Target Setter", &tracking, 1); //tracking (0 - 1)
 
     VideoCapture cap = VideoCapture("./video_fifo.h264");
