@@ -34,6 +34,7 @@ static std::vector<cv::Point> centers;
 static ARSAL_Thread_t redtracking_thread = NULL;
 static MEASURED_DATA_T measured_data_buffer;
 static pthread_mutex_t measured_data_lock;
+static int empty_counter = 0;
 
 
 bool compare_rect(const Rect &a, const Rect &b)
@@ -114,7 +115,8 @@ void *redtracking_thread_loop(void* data) {
         }
 
         Mat imgHSV;
-        measured_data_buffer.centers.clear();
+        MEASURED_DATA_T measured_data_buffer_temp;
+        measured_data_buffer_temp.centers.clear();
 
         cvtColor(imgOriginal, imgHSV, COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
 
@@ -168,7 +170,15 @@ void *redtracking_thread_loop(void* data) {
                     cv::putText(imgOriginal, "["+std::to_string(centers[i].x).substr(0,5)+";"+std::to_string(centers[i].y).substr(0,5)+"]", centers[i], cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(0,255,0), 2.0);
 
                     //update infos for ptitoi/picot command loop
-                    measured_data_buffer.centers.push_back(std::make_pair(centers[i].x, centers[i].y));
+                    measured_data_buffer_temp.centers.push_back(std::make_pair(centers[i].x, centers[i].y));
+                    if(measured_data_buffer_temp.centers.empty()){
+                        if(empty_counter>=5) {
+                            measured_data_buffer = measured_data_buffer_temp;
+                            empty_counter = 0;
+                        } else {
+                            empty_counter++;
+                        }
+                    }
                     redtracking_update_measured_data(&measured_data_buffer);
                 }
             }
