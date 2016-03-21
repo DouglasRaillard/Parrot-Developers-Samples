@@ -383,6 +383,7 @@ void *IHM_InputProcessing(void *data)
                     else if (followingActive == true)
                     {
                         automationActive = false;
+                        ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
                         FollowingNavigation(ihm, &followingActive, &state, &temp);
                     }
                     else
