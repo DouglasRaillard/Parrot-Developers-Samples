@@ -9,6 +9,8 @@ extern "C" {
 
 typedef struct MEASURED_DATA_T {
     std::vector<std::pair<double,double> > centers;
+    std::vector<double> areas;
+
 } MEASURED_DATA_T;
 
 // Get data created by the OpenCV thread
