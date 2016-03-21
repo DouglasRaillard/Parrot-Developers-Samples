@@ -434,12 +434,20 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
 {
     if(true)
     {
-        struct MEASURED_DATA_T trackPoints;
+        MEASURED_DATA_T trackPoints = redtracking_get_measured_data();;
         ARCONTROLLER_Device_t *deviceController = (ARCONTROLLER_Device_t *)ihm->customData;
+
+        // If not track points, find one
+        if(trackPoints.centers.empty()) {
+            ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
+            *state = STATE_INITIAL_SEARCH; // If no target is found, keep searching for it
+        }
+
         //Print state
         move(DATA_Y, 0);     // move to begining of line
         clrtoeol();          // clear line
         mvprintw(DATA_Y, DATA_X, "State: %u", *state);
+
 
         switch(*state)
         {
@@ -458,7 +466,6 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 break;
 
             case STATE_INITIAL_SEARCH:
-                trackPoints = redtracking_get_measured_data();
                 if(!trackPoints.centers.empty())
                 {
                     // Threshold controller
@@ -483,7 +490,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
                 (*temp)++;
                 // Search the target once in a while, or do it if absolutely necessary (target really not in the front)
-                if (*temp > 10 || trackPoints.centers[0].first < thresholdLeft || trackPoints.centers[0].first > thresholdRight)
+                if (*temp > 500000 || trackPoints.centers[0].first < thresholdLeft || trackPoints.centers[0].first > thresholdRight)
                 {
                     *state = STATE_SEARCH; // Reenable tracking after 10 cycles or if the target is really not in front of the drone
                     *temp = 0;
@@ -491,46 +498,33 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 break;
 
             case STATE_SEARCH:
-                trackPoints = redtracking_get_measured_data();
-                if(!trackPoints.centers.empty())
-                {
-                    // PI controller
-                    // If approximately correctly oriented, goes straight
-                    if(trackPoints.centers[0].first < proportionalThresholdLeft && trackPoints.centers[0].first > proportionalThresholdRight){
-                        *state = STATE_FOLLOW; // If the target is right ahead, go straight to it without the proportionnal controller
-                        *temp = 0;
-                    }
-                    // If too much deviation, use the proportionnal corrector at a slower linear speed
-                    else
-                    {
-                        int yaw_command = yawProportionalCommandGain*(trackPoints.centers[0].first-centerX)/(maxX-centerX);
-                        // Sign opposed to sign of yaw command
-                        int vertical_speed_sign = yaw_command >= 0 ? -1 : 1;
-                        deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, yaw_command, vertical_speed_sign*10, 0);
-                    }
-                    /*
-                    // Threshold controller
-                    if(trackPoints.centers[0].first < thresholdLeft)
-                        ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
-                    else if(trackPoints.centers[0].first > thresholdRight)
-                        ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
-                    else
-                    {
-                        // *state = STATE_FOLLOW;
-                        *temp = 0;
-                    }
-                    */
+                // PI controller
+                // If approximately correctly oriented, goes straight
+                if(trackPoints.centers[0].first < proportionalThresholdLeft && trackPoints.centers[0].first > proportionalThresholdRight){
+                    *state = STATE_FOLLOW; // If the target is right ahead, go straight to it without the proportionnal controller
+                    *temp = 0;
                 }
+                // If too much deviation, use the proportionnal corrector at a slower linear speed
                 else
                 {
-                    ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
-                     *state = STATE_INITIAL_SEARCH; // If no target is found, keep searching for it
-                    /*(*temp)++;
-                    if(*temp == 100)
-                    {
-                            //*state = STATE_LANDING;
-                    }*/
+                    int yaw_command = yawProportionalCommandGain*(trackPoints.centers[0].first-centerX)/(maxX-centerX);
+                    // Sign opposed to sign of yaw command
+                    int vertical_speed_sign = yaw_command >= 0 ? -1 : 1;
+                    deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, yaw_command, vertical_speed_sign*10, 0);
                 }
+                /*
+                // Threshold controller
+                if(trackPoints.centers[0].first < thresholdLeft)
+                    ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
+                else if(trackPoints.centers[0].first > thresholdRight)
+                    ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
+                else
+                {
+                    // *state = STATE_FOLLOW;
+                    *temp = 0;
+                }
+                */
+
                 break;
 
             case STATE_LANDING:
