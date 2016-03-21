@@ -178,6 +178,9 @@ void *redtracking_thread_loop(void* data) {
                         } else {
                             empty_counter++;
                         }
+                    } else {
+                        measured_data_buffer = measured_data_buffer_temp;
+                        empty_counter = 0;
                     }
                     redtracking_update_measured_data(&measured_data_buffer);
                 }
