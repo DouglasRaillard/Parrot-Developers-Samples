@@ -521,7 +521,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                     // New Proportionnal controller
                     int roll_speed_command = 0;
                     int pitch_speed_command = 0;
-                    int yaw_speed_command = yawProportionalCommandGain*(trackPoints.centers[0].first-centerX)/(maxX-centerX);
+                    int yaw_speed_command = yawProportionalCommandGain*(trackPoints.centers[0].first-centerX)/(double)(maxX-centerX);
 
                     // If approximately correctly oriented, goes forward, else only orientate
                     if(trackPoints.centers[0].first > proportionalThresholdLeft && trackPoints.centers[0].first < proportionalThresholdRight){
