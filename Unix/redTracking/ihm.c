@@ -118,6 +118,7 @@ extern "C" {
 
 #define yawProportionalCommandGain 70
 #define linearSpeedGain 50
+#define verticalSpeedGain 10
 #define smallestArea ((maxX/10)*(maxY/10))
 
 #define DATA_X 0
@@ -516,7 +517,26 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 }
 
             case STATE_SEARCH:
-                // PI controller
+                {
+                    // New Proportionnal controller
+                    int roll_speed_command = 0;
+                    int pitch_speed_command = 0;
+                    int yaw_speed_command = yawProportionalCommandGain*(trackPoints.centers[0].first-centerX)/(maxX-centerX);
+
+                    // If approximately correctly oriented, goes forward, else only orientate
+                    if(trackPoints.centers[0].first > proportionalThresholdLeft && trackPoints.centers[0].first < proportionalThresholdRight){
+                        //pitch_speed_command = linearSpeedGain;
+                        pitch_speed_command = linearSpeedGain*(smallestArea/trackPoints.areas[0]);
+                    }
+
+                    // Sign opposed to sign of yaw command
+                    int vertical_speed_sign = yaw_speed_command >= 0 ? -1 : 1;
+                    int vertical_speed_command = vertical_speed_sign*verticalSpeedGain;
+                    bool roll_or_pitch = pitch_speed_command != 0 || roll_speed_command != 0;
+                    deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, roll_or_pitch, roll_speed_command, pitch_speed_command, yaw_speed_command, vertical_speed_command, 0);
+                }
+                /*
+                // Old PI controller
                 // If approximately correctly oriented, goes straight
                 if(trackPoints.centers[0].first > proportionalThresholdLeft && trackPoints.centers[0].first < proportionalThresholdRight){
                     *state = STATE_FOLLOW; // If the target is right ahead, go straight to it without the proportionnal controller
@@ -530,6 +550,8 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                     int vertical_speed_sign = yaw_command >= 0 ? -1 : 1;
                     deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, yaw_command, vertical_speed_sign*10, 0);
                 }
+                */
+
                 /*
                 // Threshold controller
                 if(trackPoints.centers[0].first < thresholdLeft)
