@@ -111,7 +111,7 @@ extern "C" {
 #define thresholdLeft (centerX-250)
 #define proportionalThresholdRight (centerX+50)
 #define proportionalThresholdLeft (centerX-50)
-#define yawProportionalCommandGain 80
+#define yawProportionalCommandGain 90
 
 #define DATA_X 0
 #define DATA_Y 19
@@ -122,7 +122,6 @@ extern "C" {
  *
  ****************************************/
 void *IHM_InputProcessing(void *data);
-void IHM_PrintMeasuredData(IHM_t *ihm);
 
 /*****************************************
  *
@@ -230,7 +229,6 @@ void *IHM_InputProcessing(void *data)
 
     struct timeval beginAutomationTime;
     bool automationActive = false;
-
     bool followingActive = false;
     COMMAND_STATE state = STATE_NONE;
     int temp = 0;
@@ -386,6 +384,7 @@ void *IHM_InputProcessing(void *data)
                     {
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
                         automationActive = false;
+                        ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
                         FollowingNavigation(ihm, &followingActive, &state, &temp);
                     }
                     else
@@ -434,24 +433,21 @@ void AutonomousNavigation(IHM_t *ihm, struct timeval beginTime, bool *automation
 
 void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state, int *temp)
 {
-
     if(true)
     {
-        struct MEASURED_DATA_T trackPoints;
+        MEASURED_DATA_T trackPoints = redtracking_get_measured_data();;
         ARCONTROLLER_Device_t *deviceController = (ARCONTROLLER_Device_t *)ihm->customData;
+
+        // If not track points, find one
+        if(trackPoints.centers.empty()) {
+            ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
+            *state = STATE_INITIAL_SEARCH; // If no target is found, keep searching for it
+        }
+
         //Print state
         move(DATA_Y, 0);     // move to begining of line
         clrtoeol();          // clear line
         mvprintw(DATA_Y, DATA_X, "State: %u", *state);
-
-        struct timeval currentTime,beginTime;
-        gettimeofday(&currentTime, NULL);
-        static bool no_trackpoints_before = false;
-
-        if(trackPoints.centers.empty())
-        {
-            *state = STATE_INITIAL_SEARCH;
-        }
 
         switch(*state)
         {
@@ -470,7 +466,6 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 break;
 
             case STATE_INITIAL_SEARCH:
-                trackPoints = redtracking_get_measured_data();
                 if(!trackPoints.centers.empty())
                 {
                     // Threshold controller
@@ -495,7 +490,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 //ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);    
                 //(*temp)++;
                 // Search the target once in a while, or do it if absolutely necessary (target really not in the front)
-                /*if (*temp > 10000000000)// || trackPoints.centers[0].first < thresholdLeft || trackPoints.centers[0].first > thresholdRight)
+                if (*temp > 500000 || trackPoints.centers[0].first < thresholdLeft || trackPoints.centers[0].first > thresholdRight)
                 {
                     *state = STATE_SEARCH; // Reenable tracking after 10 cycles or if the target is really not in front of the drone
                     *temp = 0;
@@ -503,8 +498,14 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 break;
 
             case STATE_SEARCH:
-                trackPoints = redtracking_get_measured_data();
-                if(!trackPoints.centers.empty())
+                // PI controller
+                // If approximately correctly oriented, goes straight
+                if(trackPoints.centers[0].first < proportionalThresholdLeft && trackPoints.centers[0].first > proportionalThresholdRight){
+                    *state = STATE_FOLLOW; // If the target is right ahead, go straight to it without the proportionnal controller
+                    *temp = 0;
+                }
+                // If too much deviation, use the proportionnal corrector at a slower linear speed
+                else
                 {
                     // PI controller
                     // If approximately correctly oriented, goes straight
@@ -533,16 +534,19 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                     }
                     */
                 }
+                /*
+                // Threshold controller
+                if(trackPoints.centers[0].first < thresholdLeft)
+                    ihm->onInputEventCallback (IHM_INPUT_EVENT_LEFT, ihm->customData);
+                else if(trackPoints.centers[0].first > thresholdRight)
+                    ihm->onInputEventCallback (IHM_INPUT_EVENT_RIGHT, ihm->customData);
                 else
                 {
-                    ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
-                    (*temp)++;
-                     *state = STATE_SEARCH; // If no target is found, keep searching for it
-                    /*if(*temp == 100)
-                    {
-                            //*state = STATE_LANDING;
-                    }*/
+                    // *state = STATE_FOLLOW;
+                    *temp = 0;
                 }
+                */
+
                 break;
 
             case STATE_LANDING:
@@ -557,7 +561,6 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 *followingActive = false;
                 break;
         }
-
     }
 }
 

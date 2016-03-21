@@ -53,15 +53,15 @@ typedef enum
     IHM_INPUT_EVENT_ROLL_RIGHT,
 }eIHM_INPUT_EVENT;
 
-typedef enum
+typedef enum COMMAND_STATE
 {
     STATE_NONE,
     STATE_STAB,
     STATE_INITIAL_SEARCH,
     STATE_FOLLOW,
     STATE_SEARCH,
-    STATE_LANDING,
-}COMMAND_STATE;
+    STATE_LANDING
+} COMMAND_STATE;
 
 typedef void (*IHM_onInputEvent_t) (eIHM_INPUT_EVENT event, void *customData);
 
@@ -91,5 +91,6 @@ void IHM_PrintSpeed(IHM_t *ihm, float speedX, float speedY, float speedZ);
 void IHM_PrintPosition(IHM_t *ihm, double latitude, double longitude, double altitude);
 void IHM_PrintAltitude(IHM_t *ihm, double altitude);
 void IHM_PrintCommand(IHM_t *ihm, int event);
+void IHM_PrintMeasuredData(IHM_t *ihm);
 
 #endif /* _BEBOP_PILOTING_IHM_H_ */
