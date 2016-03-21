@@ -448,6 +448,10 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
         // If not track points, find one
         if(trackPoints.centers.empty()) {
             ihm->onInputEventCallback (IHM_INPUT_EVENT_NONE, ihm->customData);
+            //STATE_DIAGRAM:NONE -> INITIAL_SEARCH [label="When no tracked points are in sight"];
+            //STATE_DIAGRAM:FOLLOW -> INITIAL_SEARCH [label="When no tracked points are in sight"];
+            //STATE_DIAGRAM:SEARCH -> INITIAL_SEARCH [label="When no tracked points are in sight"];
+
             *state = STATE_INITIAL_SEARCH; // If no target is found, keep searching for it
         }
 
@@ -500,12 +504,12 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                     deviceController->aRDrone3->setPilotingPCMDPitch(deviceController->aRDrone3, speed);
                     deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
 
-                    // Search the target once in a while, or do it if absolutely necessary (target really not in the front)
                     (*temp)++;
+                    // Search the target once in a while, or do it if absolutely necessary (target really not in the front)
                     //if (*temp > 20000 || trackPoints.centers[0].first < thresholdLeft || trackPoints.centers[0].first > thresholdRight)
                     if (trackPoints.centers[0].first < thresholdLeft || trackPoints.centers[0].first > thresholdRight)
                     {
-                        *state = STATE_SEARCH; // Reenable tracking after 10 cycles or if the target is really not in front of the drone
+                        *state = STATE_SEARCH; // Reenable if the target is really not in front of the drone
                         *temp = 0;
                     }
                     break;
