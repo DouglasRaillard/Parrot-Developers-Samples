@@ -119,7 +119,7 @@ extern "C" {
 #define yawProportionalCommandGain 70
 #define linearSpeedGain 50
 #define verticalSpeedGain 10
-#define smallestArea ((maxX/10)*(maxY/10))
+#define maxSpeedTargetArea ((maxX/10)*(maxY/10))
 
 #define DATA_X 0
 #define DATA_Y 19
@@ -501,7 +501,7 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
             case STATE_FOLLOW:
                 {
                     //ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
-                    unsigned long speed = linearSpeedGain*(smallestArea/trackPoints.areas[0]);
+                    unsigned long speed = linearSpeedGain*(maxSpeedTargetArea/trackPoints.areas[0]);
                     deviceController->aRDrone3->setPilotingPCMDPitch(deviceController->aRDrone3, speed);
                     deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
 
@@ -526,7 +526,11 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                     // If approximately correctly oriented, goes forward, else only orientate
                     if(trackPoints.centers[0].first > proportionalThresholdLeft && trackPoints.centers[0].first < proportionalThresholdRight){
                         //pitch_speed_command = linearSpeedGain;
-                        pitch_speed_command = linearSpeedGain*(smallestArea/trackPoints.areas[0]);
+                        double linear_speed_factor = maxSpeedTargetArea/trackPoints.areas[0];
+                        if(linear_speed_factor >= 1.0){
+                            linear_speed_factor = 1.0;
+                        }
+                        pitch_speed_command = linearSpeedGain*linear_speed_factor;
                     }
 
                     // Sign opposed to sign of yaw command
