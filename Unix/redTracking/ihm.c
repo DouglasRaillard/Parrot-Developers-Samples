@@ -230,7 +230,6 @@ void *IHM_InputProcessing(void *data)
 
     struct timeval beginAutomationTime;
     bool automationActive = false;
-
     bool followingActive = false;
     COMMAND_STATE state = STATE_NONE;
     int temp = 0;

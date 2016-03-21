@@ -53,15 +53,15 @@ typedef enum
     IHM_INPUT_EVENT_ROLL_RIGHT,
 }eIHM_INPUT_EVENT;
 
-typedef enum
+typedef enum COMMAND_STATE
 {
     STATE_NONE,
     STATE_STAB,
     STATE_INITIAL_SEARCH,
     STATE_FOLLOW,
     STATE_SEARCH,
-    STATE_LANDING,
-}COMMAND_STATE;
+    STATE_LANDING
+} COMMAND_STATE;
 
 typedef void (*IHM_onInputEvent_t) (eIHM_INPUT_EVENT event, void *customData);
 
