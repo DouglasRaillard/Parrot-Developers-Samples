@@ -111,7 +111,7 @@ extern "C" {
 #define thresholdLeft (centerX-250)
 #define proportionalThresholdRight (centerX+50)
 #define proportionalThresholdLeft (centerX-50)
-#define yawProportionalCommandGain 50
+#define yawProportionalCommandGain 80
 
 #define DATA_X 0
 #define DATA_Y 19
@@ -386,7 +386,6 @@ void *IHM_InputProcessing(void *data)
                     {
                         ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);
                         automationActive = false;
-                        //state = STATE_FOLLOW;
                         FollowingNavigation(ihm, &followingActive, &state, &temp);
                     }
                     else
@@ -445,9 +444,13 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
         clrtoeol();          // clear line
         mvprintw(DATA_Y, DATA_X, "State: %u", *state);
 
+        struct timeval currentTime,beginTime;
+        gettimeofday(&currentTime, NULL);
+        static bool no_trackpoints_before = false;
+
         if(trackPoints.centers.empty())
         {
-            *state = STATE_SEARCH;
+            *state = STATE_INITIAL_SEARCH;
         }
 
         switch(*state)
@@ -489,8 +492,8 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                 break;
 
             case STATE_FOLLOW:
-                ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);    
-                (*temp)++;
+                //ihm->onInputEventCallback (IHM_INPUT_EVENT_FORWARD, ihm->customData);    
+                //(*temp)++;
                 // Search the target once in a while, or do it if absolutely necessary (target really not in the front)
                 /*if (*temp > 10000000000)// || trackPoints.centers[0].first < thresholdLeft || trackPoints.centers[0].first > thresholdRight)
                 {
