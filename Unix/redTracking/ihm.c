@@ -525,12 +525,12 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
 
                     // If approximately correctly oriented, goes forward, else only orientate
                     if(trackPoints.centers[0].first > proportionalThresholdLeft && trackPoints.centers[0].first < proportionalThresholdRight){
-                        //pitch_speed_command = linearSpeedGain;
-                        double linear_speed_factor = maxSpeedTargetArea/trackPoints.areas[0];
+                        pitch_speed_command = linearSpeedGain;
+                        /*double linear_speed_factor = maxSpeedTargetArea/trackPoints.areas[0];
                         if(linear_speed_factor >= 1.0){
                             linear_speed_factor = 1.0;
                         }
-                        pitch_speed_command = linearSpeedGain*linear_speed_factor;
+                        pitch_speed_command = linearSpeedGain*linear_speed_factor;*/
                     }
 
                     // Sign opposed to sign of yaw command
