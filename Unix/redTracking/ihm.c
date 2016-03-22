@@ -106,10 +106,11 @@ extern "C" {
  *       treshold following flight:
  *
  ****************************************/
-#define centerX 300
-#define maxX 600
-#define maxY 600
 
+#define maxX 600
+#define maxY 350
+#define centerX 300
+#define centerY (maxY/2)
 
 #define thresholdRight (centerX+100)
 #define thresholdLeft (centerX-100)
@@ -120,6 +121,8 @@ extern "C" {
 #define linearSpeedGain 50
 #define verticalSpeedGain 10
 #define maxSpeedTargetArea ((maxX/10)*(maxY/10))
+
+#define consignY centerY
 
 #define DATA_X 0
 #define DATA_Y 19
@@ -533,9 +536,14 @@ void FollowingNavigation(IHM_t *ihm, bool *followingActive, COMMAND_STATE *state
                         pitch_speed_command = linearSpeedGain*linear_speed_factor;*/
                     }
 
+                    //int vertical_speed_value = verticalSpeedGain;
+                    int vertical_speed_value = verticalSpeedGain*abs((trackPoints.centers[0].second-consignY)/(double)(maxY-centerY));
+
+
+
                     // Sign opposed to sign of yaw command
                     int vertical_speed_sign = yaw_speed_command >= 0 ? -1 : 1;
-                    int vertical_speed_command = vertical_speed_sign*verticalSpeedGain;
+                    int vertical_speed_command = vertical_speed_sign*vertical_speed_value;
                     bool roll_or_pitch = pitch_speed_command != 0 || roll_speed_command != 0;
                     deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, roll_or_pitch, roll_speed_command, pitch_speed_command, yaw_speed_command, vertical_speed_command, 0);
                 }
