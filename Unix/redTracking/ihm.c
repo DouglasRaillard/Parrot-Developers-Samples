@@ -114,8 +114,8 @@ extern "C" {
 
 #define thresholdRight (centerX+100)
 #define thresholdLeft (centerX-100)
-#define proportionalThresholdRight (centerX+60)
-#define proportionalThresholdLeft (centerX-60)
+#define proportionalThresholdRight (centerX+90)
+#define proportionalThresholdLeft (centerX-90)
 
 #define yawProportionalCommandGain 70
 #define linearSpeedGain 50
